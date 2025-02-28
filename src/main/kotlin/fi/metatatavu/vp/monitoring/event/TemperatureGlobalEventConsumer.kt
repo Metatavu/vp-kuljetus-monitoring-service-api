@@ -34,19 +34,12 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
     @ConsumeEvent("TEMPERATURE")
     @Suppress("unused")
     @WithTransaction
-    fun onTemperatureEvent(temperatureEvent: TemperatureGlobalEvent): Uni<Void> = withCoroutineScope(60_000){
+    fun onTemperatureEvent(temperatureEvent: TemperatureGlobalEvent): Uni<Boolean> = withCoroutineScope {
         logger.info("Temperature event: $temperatureEvent")
 
         temperatureEventController.saveEvent(sensorId = temperatureEvent.sensorId, temperature = temperatureEvent.temperature, timeStamp = temperatureEvent.timestamp)
-        val events = temperatureEventController.listBySensorId(sensorId = temperatureEvent.sensorId)
-        events.forEach {
-            println(it.temperature)
-            println(it.timestamp)
-            println(it.sensorId)
-            println(it.id)
-        }
 
-        globalEventController.publish(temperatureEvent)
-    }.replaceWithVoid()
+        return@withCoroutineScope true
+    }
 
 }

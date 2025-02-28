@@ -11,6 +11,7 @@ class DefaultTestProfile: QuarkusTestProfile {
         val config: MutableMap<String, String> = HashMap()
         config["vp.env"] = "TEST"
         config["mp.messaging.outgoing.vp-out.exchange.name"] = EXCHANGE_NAME
+        config["mp.messaging.outgoing.vp-out.connector"] = "smallrye-rabbitmq"
         config["mp.messaging.incoming.vp-in.connector"] = "smallrye-rabbitmq"
         config["mp.messaging.incoming.vp-in.queue.name"] = "incoming_queue"
         config["mp.messaging.incoming.vp-in.queue.x-queue-type"] = "quorum"

@@ -1,0 +1,18 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "reviewers": ["jarinykanen"],
+  "labels": ["dependencies"],
+  "requiredStatusChecks": null,
+  "packageRules": [
+    {
+      "matchDepTypes": ["optionalDependencies"],
+      "addLabels": ["optional"]
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest", "devDependencies"],
+      "automerge": true
+    }
+  ]
+}

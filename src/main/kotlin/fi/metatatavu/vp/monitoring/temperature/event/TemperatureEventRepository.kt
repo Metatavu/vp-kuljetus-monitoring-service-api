@@ -1,6 +1,8 @@
 package fi.metatatavu.vp.monitoring.temperature.event
 
 import fi.metatatavu.vp.monitoring.persistence.AbstractRepository
+import io.quarkus.panache.common.Parameters
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import jakarta.enterprise.context.ApplicationScoped
 import java.util.UUID
 
@@ -20,5 +22,15 @@ class TemperatureEventRepository: AbstractRepository<TemperatureEventEntity, UUI
         temperatureEventEntity.timestamp = timeStamp
         temperatureEventEntity.sensorId = sensorId
         return persistSuspending(temperatureEventEntity)
+    }
+
+    /**
+     * List temperature events by sensor id
+     *
+     *
+     * @param sensorId
+     */
+    suspend fun listBySensorId(sensorId: String): List<TemperatureEventEntity> {
+        return find("sensorId = :sensorId", Parameters().and("sensorId", sensorId)).list<TemperatureEventEntity>().awaitSuspending()
     }
 }

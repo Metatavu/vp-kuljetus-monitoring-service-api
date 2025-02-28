@@ -1,8 +1,10 @@
 package fi.metatatavu.vp.monitoring.event
 
 import fi.metatatavu.vp.monitoring.temperature.event.TemperatureEventController
+import fi.metatavu.vp.messaging.GlobalEventController
 import fi.metatavu.vp.messaging.WithCoroutineScope
 import fi.metatavu.vp.messaging.events.TemperatureGlobalEvent
+import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.quarkus.vertx.ConsumeEvent
 import io.smallrye.mutiny.Uni
 import jakarta.enterprise.context.ApplicationScoped
@@ -21,20 +23,30 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
     @Inject
     lateinit var temperatureEventController: TemperatureEventController
 
+    @Inject
+    lateinit var globalEventController: GlobalEventController
+
     /**
      * Event bus consumer for temperature events
      *
      * @param temperatureEvent temperature event
      */
-    @ConsumeEvent(TEMPERATURE_EVENT)
+    @ConsumeEvent("TEMPERATURE")
     @Suppress("unused")
-    fun onTemperatureEvent(temperatureEvent: TemperatureGlobalEvent): Uni<Void> = withCoroutineScope {
+    @WithTransaction
+    fun onTemperatureEvent(temperatureEvent: TemperatureGlobalEvent): Uni<Void> = withCoroutineScope(60_000){
         logger.info("Temperature event: $temperatureEvent")
 
-        temperatureEventController.create(sensorId = temperatureEvent.sensorId, temperature = temperatureEvent.temperature, timeStamp = temperatureEvent.timestamp)
+        temperatureEventController.saveEvent(sensorId = temperatureEvent.sensorId, temperature = temperatureEvent.temperature, timeStamp = temperatureEvent.timestamp)
+        val events = temperatureEventController.listBySensorId(sensorId = temperatureEvent.sensorId)
+        events.forEach {
+            println(it.temperature)
+            println(it.timestamp)
+            println(it.sensorId)
+            println(it.id)
+        }
+
+        globalEventController.publish(temperatureEvent)
     }.replaceWithVoid()
 
-    companion object {
-        const val TEMPERATURE_EVENT = "temperature-event"
-    }
 }

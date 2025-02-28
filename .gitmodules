@@ -1,6 +1,3 @@
-[submodule "api-spec-template"]
-	path = api-spec-template
-	url = https://github.com/Metatavu/api-spec-template.git
 [submodule "vp-kuljetus-transport-management-specs"]
 	path = vp-kuljetus-transport-management-specs
 	url = https://github.com/Metatavu/vp-kuljetus-transport-management-specs.git

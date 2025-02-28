@@ -27,18 +27,4 @@ class SystemTestIT {
             .statusCode(200)
             .body(equalTo("pong"))
     }
-
-    @Test
-    fun testMessageEvent() {
-        MessagingClient.publishMessage(TemperatureGlobalEvent("WTF", -1000f, OffsetDateTime.now().toInstant().toEpochMilli()),
-            RoutingKey.TEMPERATURE)
-        MessagingClient.publishMessage(TemperatureGlobalEvent("WTF2", -5000f, OffsetDateTime.now().toInstant().toEpochMilli()),
-            RoutingKey.TEMPERATURE)
-        Thread.sleep(10000)
-        MessagingClient.publishMessage(TemperatureGlobalEvent("WTF", 1000f, OffsetDateTime.now().toInstant().toEpochMilli()),
-            RoutingKey.TEMPERATURE)
-        MessagingClient.publishMessage(TemperatureGlobalEvent("WTF2", 5000f, OffsetDateTime.now().toInstant().toEpochMilli()),
-            RoutingKey.TEMPERATURE)
-        Thread.sleep(60000)
-    }
 }

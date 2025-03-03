@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native -t quarkus/delivery-service-api .
+# docker build -f src/main/docker/Dockerfile.native -t quarkus/monitoring-service-api .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/delivery-service-api
+# docker run -i --rm -p 8080:8080 quarkus/monitoring-service-api
 #
 ###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9

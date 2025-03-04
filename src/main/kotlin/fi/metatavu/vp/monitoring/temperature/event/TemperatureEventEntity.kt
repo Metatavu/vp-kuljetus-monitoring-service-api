@@ -20,7 +20,4 @@ class TemperatureEventEntity {
 
     @Column(nullable = false)
     var timestamp: Long? = null
-
-    @Column(nullable = false)
-    var temperature: Float? = null
 }

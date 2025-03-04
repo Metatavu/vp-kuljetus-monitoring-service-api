@@ -12,16 +12,15 @@ class TemperatureEventController {
      * Save the incoming temperature event. Remove the old events for the same sensor.
      *
      * @param sensorId
-     * @param temperature
      * @param timeStamp
      */
-    suspend fun saveEvent(sensorId: String, temperature: Float, timeStamp: Long): TemperatureEventEntity {
+    suspend fun saveEvent(sensorId: String, timeStamp: Long): TemperatureEventEntity {
         val existingEvents = listBySensorId(sensorId)
         existingEvents.forEach {
             temperatureEventRepository.deleteSuspending(it)
         }
 
-        return temperatureEventRepository.create(sensorId, temperature, timeStamp)
+        return temperatureEventRepository.create(sensorId, timeStamp)
     }
 
     /**

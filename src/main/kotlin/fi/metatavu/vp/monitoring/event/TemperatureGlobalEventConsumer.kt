@@ -37,7 +37,7 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
     fun onTemperatureEvent(temperatureEvent: TemperatureGlobalEvent): Uni<Boolean> = withCoroutineScope {
         logger.info("Temperature event: $temperatureEvent")
 
-        temperatureEventController.saveEvent(sensorId = temperatureEvent.sensorId, temperature = temperatureEvent.temperature, timeStamp = temperatureEvent.timestamp)
+        temperatureEventController.saveEvent(sensorId = temperatureEvent.sensorId, timeStamp = temperatureEvent.timestamp)
 
         return@withCoroutineScope true
     }

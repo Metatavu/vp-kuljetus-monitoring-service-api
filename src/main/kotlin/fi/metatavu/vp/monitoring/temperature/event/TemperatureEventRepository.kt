@@ -12,13 +12,11 @@ class TemperatureEventRepository: AbstractRepository<TemperatureEventEntity, UUI
      * Save a temperature event to repository
      *
      * @param sensorId
-     * @param temperature
      * @param timeStamp
      */
-    suspend fun create(sensorId: String, temperature: Float, timeStamp: Long): TemperatureEventEntity {
+    suspend fun create(sensorId: String, timeStamp: Long): TemperatureEventEntity {
         val temperatureEventEntity = TemperatureEventEntity()
         temperatureEventEntity.id = UUID.randomUUID()
-        temperatureEventEntity.temperature = temperature
         temperatureEventEntity.timestamp = timeStamp
         temperatureEventEntity.sensorId = sensorId
         return persistSuspending(temperatureEventEntity)

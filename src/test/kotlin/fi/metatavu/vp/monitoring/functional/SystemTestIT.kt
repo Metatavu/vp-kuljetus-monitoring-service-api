@@ -1,16 +1,11 @@
 package fi.metatavu.vp.monitoring.functional
 
-import fi.metatavu.vp.messaging.RoutingKey
-import fi.metatavu.vp.messaging.client.MessagingClient
-import fi.metatavu.vp.messaging.events.TemperatureGlobalEvent
-import fi.metatavu.vp.messaging.events.abstracts.GlobalEvent
 import fi.metatavu.vp.monitoring.functional.settings.DefaultTestProfile
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import io.restassured.module.kotlin.extensions.When
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
-import java.time.OffsetDateTime
 
 /**
  * Tests for System API

@@ -1,6 +1,6 @@
-package fi.metatatavu.vp.monitoring.temperature.event
+package fi.metatavu.vp.monitoring.temperature.event
 
-import fi.metatatavu.vp.monitoring.persistence.AbstractRepository
+import fi.metatavu.vp.monitoring.persistence.AbstractRepository
 import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import jakarta.enterprise.context.ApplicationScoped

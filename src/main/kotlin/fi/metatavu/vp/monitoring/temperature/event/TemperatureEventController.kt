@@ -1,4 +1,4 @@
-package fi.metatatavu.vp.monitoring.temperature.event
+package fi.metatavu.vp.monitoring.temperature.event
 
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
@@ -29,7 +29,7 @@ class TemperatureEventController {
      *
      * @param sensorId
      */
-    suspend fun listBySensorId(sensorId: String): List<TemperatureEventEntity> {
+    suspend fun listBySensorId(sensorId: String): List<fi.metatavu.vp.monitoring.temperature.event.TemperatureEventEntity> {
         return temperatureEventRepository.listBySensorId(sensorId)
     }
 }

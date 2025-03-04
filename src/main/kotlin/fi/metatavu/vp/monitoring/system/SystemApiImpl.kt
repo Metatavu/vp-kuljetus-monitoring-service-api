@@ -1,4 +1,4 @@
-package fi.metatatavu.vp.monitoring.system
+package fi.metatavu.vp.monitoring.system
 
 import fi.metatavu.vp.api.spec.SystemApi
 import io.smallrye.mutiny.Uni

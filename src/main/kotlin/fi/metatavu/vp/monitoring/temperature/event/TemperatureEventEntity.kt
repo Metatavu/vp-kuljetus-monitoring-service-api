@@ -1,4 +1,4 @@
-package fi.metatatavu.vp.monitoring.temperature.event
+package fi.metatavu.vp.monitoring.temperature.event
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

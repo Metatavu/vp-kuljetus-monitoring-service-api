@@ -1,6 +1,6 @@
-package fi.metatatavu.vp.monitoring.event
+package fi.metatavu.vp.monitoring.event
 
-import fi.metatatavu.vp.monitoring.temperature.event.TemperatureEventController
+import fi.metatavu.vp.monitoring.temperature.event.TemperatureEventController
 import fi.metatavu.vp.messaging.GlobalEventController
 import fi.metatavu.vp.messaging.WithCoroutineScope
 import fi.metatavu.vp.messaging.events.TemperatureGlobalEvent
@@ -21,7 +21,7 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
     lateinit var logger: Logger
 
     @Inject
-    lateinit var temperatureEventController: TemperatureEventController
+    lateinit var temperatureEventController: fi.metatavu.vp.monitoring.temperature.event.TemperatureEventController
 
     @Inject
     lateinit var globalEventController: GlobalEventController

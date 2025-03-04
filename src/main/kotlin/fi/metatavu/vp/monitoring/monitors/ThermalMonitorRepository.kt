@@ -1,9 +1,9 @@
 package fi.metatavu.vp.monitoring.monitors
 
+import fi.metatavu.vp.api.model.ThermalMonitor
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
 import fi.metatavu.vp.monitoring.persistence.AbstractRepository
 import io.quarkus.panache.common.Parameters
-import io.smallrye.mutiny.coroutines.awaitSuspending
 import jakarta.enterprise.context.ApplicationScoped
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -46,6 +46,15 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         return persistSuspending(monitor)
     }
 
+    /**
+     * List thermal monitors
+     *
+     * @param status
+     * @param activeAfter
+     * @param activeBefore
+     * @param first
+     * @param max
+     */
     suspend fun list(
         status: ThermalMonitorStatus?,
         activeAfter: OffsetDateTime?,
@@ -72,5 +81,26 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         }
 
         return applyFirstMaxToQuery(find(queryBuilder.toString(), parameters), firstIndex = first, maxResults = max)
+    }
+
+    /**
+     * Update thermal monitor
+     *
+     * @param thermalMonitorEntity thermal monitor entity
+     * @param thermalMonitor updated data
+     * @param modifier modifier
+     */
+    suspend fun update(thermalMonitorEntity: ThermalMonitorEntity, thermalMonitor: ThermalMonitor, modifier: UUID): ThermalMonitorEntity {
+        val updated = thermalMonitorEntity
+        updated.name = thermalMonitor.name
+        updated.status = thermalMonitor.status.toString()
+        updated.creatorId = thermalMonitor.creatorId!!
+        updated.lastModifierId = modifier
+        updated.thresholdLow = thermalMonitor.lowerThresholdTemperature
+        updated.thresholdHigh = thermalMonitor.upperThresholdTemperature
+        updated.activeFrom = thermalMonitor.activeFrom
+        updated.activeTo = thermalMonitor.activeTo
+
+        return persistSuspending(updated)
     }
 }

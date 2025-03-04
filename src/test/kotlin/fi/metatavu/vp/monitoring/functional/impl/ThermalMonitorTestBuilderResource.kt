@@ -43,6 +43,7 @@ class ThermalMonitorTestBuilderResource(
      * Asserts that monitor creation fails with expected status
      *
      * @param expectedStatus expected status
+     * @param thermalMonitor monitor
      */
     fun assertCreateFail(expectedStatus: Int, thermalMonitor: ThermalMonitor) {
         try {
@@ -126,12 +127,37 @@ class ThermalMonitorTestBuilderResource(
      * Asserts that thermal monitor find fails with expected status
      *
      * @param expectedStatus expected status
-     * @param id id
      */
     fun assertListMonitorFail(expectedStatus: Int) {
         try {
             listThermalMonitors(null, null, null, null, null)
             Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
+        } catch (ex: ClientException) {
+            assertClientExceptionStatus(expectedStatus, ex)
+        }
+    }
+
+    /**
+     * Updates a monitor
+     *
+     * @param id
+     * @param thermalMonitor
+     */
+    fun update(id: UUID, thermalMonitor: ThermalMonitor): ThermalMonitor {
+        return api.updateThermalMonitor(id, thermalMonitor)
+    }
+
+    /**
+     * Asserts that monitor update fails with expected status
+     *
+     * @param expectedStatus
+     * @param id
+     * @param thermalMonitor
+     */
+    fun assertUpdateFail(expectedStatus: Int, id: UUID, thermalMonitor: ThermalMonitor) {
+        try {
+            update(id, thermalMonitor)
+            Assert.fail(String.format("Expected update to fail with status %d", expectedStatus))
         } catch (ex: ClientException) {
             assertClientExceptionStatus(expectedStatus, ex)
         }

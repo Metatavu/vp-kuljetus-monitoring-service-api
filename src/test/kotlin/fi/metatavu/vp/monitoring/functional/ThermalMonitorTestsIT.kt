@@ -213,4 +213,53 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
         assertEquals(1, monitors2.size)
     }
+
+    @Test
+    fun testThermometerUpdate() = createTestBuilder().use {
+        val thermometer1 = UUID.randomUUID()
+        val thermometer2 = UUID.randomUUID()
+        val activeFrom = OffsetDateTime.now()
+        val activeTo = OffsetDateTime.now().plusDays(10)
+
+        val thermalMonitor = ThermalMonitor(
+            name = "test",
+            status = ThermalMonitorStatus.ACTIVE,
+            thermometerIds = arrayOf(thermometer1, thermometer2),
+            lowerThresholdTemperature = -50f,
+            upperThresholdTemperature = 50f,
+            activeFrom = activeFrom.toString(),
+            activeTo = activeTo.toString()
+        )
+
+        val created = it.manager.thermalMonitors.create(thermalMonitor)
+
+        val thermometer3 = UUID.randomUUID()
+        val activeFromNew = OffsetDateTime.now().plusDays(5)
+        val activeToNew = OffsetDateTime.now().plusDays(15)
+
+        val updatedData = created.copy(
+            name = "updated",
+            status = ThermalMonitorStatus.FINISHED,
+            thermometerIds = arrayOf(thermometer2, thermometer2, thermometer3),
+            lowerThresholdTemperature = -100f,
+            upperThresholdTemperature = 100f,
+            activeFrom = activeFromNew.toString(),
+            activeTo = activeToNew.toString()
+        )
+
+        val updated = it.manager.thermalMonitors.update(updatedData.id!!, updatedData)
+
+        assertEquals("updated", updated.name)
+        assertEquals(ThermalMonitorStatus.FINISHED, updated.status)
+        assertEquals(-100f, updated.lowerThresholdTemperature)
+        assertEquals(100f, updated.upperThresholdTemperature)
+        assertEquals(activeFromNew.toString().split(".")[0], OffsetDateTime.parse(updated.activeFrom).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0])
+        assertEquals(activeToNew.toString().split(".")[0], OffsetDateTime.parse(updated.activeTo).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0])
+        assertEquals(2, updated.thermometerIds.size)
+        assertNotNull(updated.thermometerIds.find { thermometer -> thermometer == thermometer2 })
+        assertNotNull(updated.thermometerIds.find { thermometer -> thermometer == thermometer3 })
+
+        it.manager.thermalMonitors.assertUpdateFail(404, UUID.randomUUID(), thermalMonitor)
+        it.user.thermalMonitors.assertUpdateFail(403, updatedData.id, updatedData)
+    }
 }

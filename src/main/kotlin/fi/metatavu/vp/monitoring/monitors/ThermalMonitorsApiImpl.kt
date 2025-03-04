@@ -4,6 +4,7 @@ import fi.metatavu.vp.api.model.ThermalMonitor
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
 import fi.metatavu.vp.api.spec.ThermalMonitorsApi
 import fi.metatavu.vp.monitoring.rest.AbstractApi
+import io.quarkus.hibernate.reactive.panache.common.WithSession
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
 import jakarta.annotation.security.RolesAllowed
@@ -14,6 +15,7 @@ import java.time.OffsetDateTime
 import java.util.*
 
 @RequestScoped
+@WithSession
 class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     @Inject
     lateinit var thermalMonitorController: ThermalMonitorController
@@ -64,7 +66,11 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
 
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
-    override fun updateThermalMonitor(thermalMonitorId: UUID, thermalMonitor: ThermalMonitor): Uni<Response> {
-        TODO("Not yet implemented")
+    override fun updateThermalMonitor(thermalMonitorId: UUID, thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
+        loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
+
+        val found = thermalMonitorController.find(thermalMonitorId) ?: return@withCoroutineScope createNotFound()
+
+        createOk(thermalMonitorTranslator.translate(thermalMonitorController.update(thermalMonitor, found, loggedUserId!!)))
     }
 }

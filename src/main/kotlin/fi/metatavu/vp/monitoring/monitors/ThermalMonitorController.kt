@@ -81,4 +81,34 @@ class ThermalMonitorController {
             max = max
         ).first
     }
+
+    /**
+     * Update thermal monitor
+     *
+     * @param thermalMonitor updated data
+     * @param thermalMonitorEntity existing entity
+     * @param modifier modifier
+     */
+    suspend fun update(thermalMonitor: ThermalMonitor, thermalMonitorEntity: ThermalMonitorEntity, modifier: UUID): ThermalMonitorEntity {
+        val existingThermometers = monitorThermometerRepository.list(thermalMonitorEntity)
+
+        existingThermometers.forEach {
+            if (!thermalMonitor.thermometerIds.contains(it.thermometerId)) {
+                monitorThermometerRepository.deleteSuspending(it)
+            }
+        }
+
+        val existingIds = existingThermometers.map { it.thermometerId }
+        thermalMonitor.thermometerIds.distinct().forEach {
+            if (!existingIds.contains(it)) {
+                monitorThermometerRepository.create(
+                    it,
+                    thermalMonitorEntity,
+                    modifier
+                )
+            }
+        }
+
+        return thermalMonitorRepository.update(thermalMonitorEntity, thermalMonitor, modifier)
+    }
 }

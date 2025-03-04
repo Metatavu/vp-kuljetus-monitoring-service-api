@@ -1,9 +1,12 @@
 package fi.metatavu.vp.monitoring.monitors
 
 import fi.metatavu.vp.api.model.ThermalMonitor
+import fi.metatavu.vp.api.model.ThermalMonitorStatus
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerRepository
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @ApplicationScoped
@@ -58,5 +61,24 @@ class ThermalMonitorController {
         }
 
         thermalMonitorRepository.deleteSuspending(thermalMonitorEntity)
+    }
+
+    /**
+     * List thermal monitors
+     *
+     * @param status
+     * @param activeBefore
+     * @param activeAfter
+     * @param first
+     * @param max
+     */
+    suspend fun list(status: ThermalMonitorStatus?, activeBefore: OffsetDateTime?, activeAfter: OffsetDateTime?, first: Int?, max: Int?): List<ThermalMonitorEntity> {
+        return thermalMonitorRepository.list(
+            status = status,
+            activeAfter = activeAfter,
+            activeBefore = activeBefore,
+            first = first,
+            max = max
+        ).first
     }
 }

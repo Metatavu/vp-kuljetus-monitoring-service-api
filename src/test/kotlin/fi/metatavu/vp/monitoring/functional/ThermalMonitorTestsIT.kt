@@ -88,4 +88,129 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         it.manager.thermalMonitors.assertFindMonitorFail(404, created.id)
         it.user.thermalMonitors.assertDeleteMonitorFail(403, created2.id!!)
     }
+
+    @Test
+    fun testListThermalMonitors() = createTestBuilder().use {
+        val thermalMonitor = ThermalMonitor(
+            name = "test",
+            status = ThermalMonitorStatus.ACTIVE,
+            thermometerIds = arrayOf(),
+        )
+
+        val thermalMonitor2 = ThermalMonitor(
+            name = "test",
+            status = ThermalMonitorStatus.PENDING,
+            thermometerIds = arrayOf(),
+        )
+
+        var i = 0
+        while (i < 10) {
+           it.manager.thermalMonitors.create(thermalMonitor)
+            i++
+        }
+
+        i = 0
+        while (i < 5) {
+            it.manager.thermalMonitors.create(thermalMonitor2)
+            i++
+        }
+
+        val monitors = it.manager.thermalMonitors.listThermalMonitors(
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+
+        assertEquals(15, monitors.size)
+
+        val monitors2 = it.manager.thermalMonitors.listThermalMonitors(
+            null,
+            null,
+            null,
+            first = 3,
+            max = 1000
+        )
+
+        assertEquals(12, monitors2.size)
+
+        val monitors3 = it.manager.thermalMonitors.listThermalMonitors(
+            null,
+            null,
+            null,
+            first = 3,
+            max = 10
+        )
+
+        assertEquals(10, monitors3.size)
+
+        val monitors4 = it.manager.thermalMonitors.listThermalMonitors(
+            ThermalMonitorStatus.PENDING,
+            null,
+            null,
+            null,
+            null
+        )
+
+        assertEquals(5, monitors4.size)
+
+        it.user.thermalMonitors.assertListMonitorFail(403)
+    }
+
+    @Test
+    fun testThermalMonitorListTimeFilters() = createTestBuilder().use {
+        val time1 = OffsetDateTime.now().plusDays(2)
+        val time2 = OffsetDateTime.now().plusDays(10)
+        val time3 = OffsetDateTime.now().plusDays(15)
+        val time4 = OffsetDateTime.now().plusDays(20)
+
+        val thermalMonitor = ThermalMonitor(
+            name = "test",
+            status = ThermalMonitorStatus.ACTIVE,
+            thermometerIds = arrayOf(),
+            activeFrom = time1.toString(),
+            activeTo = time2.toString()
+        )
+
+        val thermalMonitor2 = ThermalMonitor(
+            name = "test",
+            status = ThermalMonitorStatus.PENDING,
+            thermometerIds = arrayOf(),
+            activeFrom = time2.toString(),
+            activeTo = time3.toString()
+        )
+
+        val thermalMonitor3 = ThermalMonitor(
+            name = "test",
+            status = ThermalMonitorStatus.PENDING,
+            thermometerIds = arrayOf(),
+            activeFrom = time3.toString(),
+            activeTo = time4.toString()
+        )
+
+        it.manager.thermalMonitors.create(thermalMonitor)
+        it.manager.thermalMonitors.create(thermalMonitor2)
+        it.manager.thermalMonitors.create(thermalMonitor3)
+
+        val monitors1 = it.manager.thermalMonitors.listThermalMonitors(
+            null,
+            null,
+            time1.plusDays(1).toString(),
+            null,
+            null
+        )
+
+        assertEquals(2, monitors1.size)
+
+        val monitors2 = it.manager.thermalMonitors.listThermalMonitors(
+            null,
+            time4.minusDays(1).toString(),
+            time1.plusDays(1).toString(),
+            null,
+            null
+        )
+
+        assertEquals(1, monitors2.size)
+    }
 }

@@ -7,7 +7,9 @@ import fi.metatavu.vp.test.client.apis.ThermalMonitorsApi
 import fi.metatavu.vp.test.client.infrastructure.ApiClient
 import fi.metatavu.vp.test.client.infrastructure.ClientException
 import fi.metatavu.vp.test.client.models.ThermalMonitor
+import fi.metatavu.vp.test.client.models.ThermalMonitorStatus
 import org.junit.Assert
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -102,6 +104,34 @@ class ThermalMonitorTestBuilderResource(
         try {
             deleteThermalMonitor(id)
             Assert.fail(String.format("Expected delete to fail with status %d", expectedStatus))
+        } catch (ex: ClientException) {
+            assertClientExceptionStatus(expectedStatus, ex)
+        }
+    }
+
+    /**
+     * List thermal monitors
+     *
+     * @param status
+     * @param activeBefore
+     * @param activeAfter
+     * @param first
+     * @param max
+     */
+    fun listThermalMonitors(status: ThermalMonitorStatus?, activeBefore: String?, activeAfter: String?, first: Int?, max: Int?): Array<ThermalMonitor> {
+        return api.listThermalMonitors(status = status, activeBefore = activeBefore, activeAfter = activeAfter, first = first, max = max)
+    }
+
+    /**
+     * Asserts that thermal monitor find fails with expected status
+     *
+     * @param expectedStatus expected status
+     * @param id id
+     */
+    fun assertListMonitorFail(expectedStatus: Int) {
+        try {
+            listThermalMonitors(null, null, null, null, null)
+            Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
         } catch (ex: ClientException) {
             assertClientExceptionStatus(expectedStatus, ex)
         }

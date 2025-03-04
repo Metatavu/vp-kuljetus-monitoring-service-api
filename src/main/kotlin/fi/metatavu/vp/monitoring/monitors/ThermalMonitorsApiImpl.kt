@@ -26,7 +26,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     override fun createThermalMonitor(thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
         loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
 
-        return@withCoroutineScope createOk(thermalMonitorTranslator.translate(thermalMonitorController.create(
+        createOk(thermalMonitorTranslator.translate(thermalMonitorController.create(
             thermalMonitor = thermalMonitor,
             creatorId = loggedUserId!!
         )))
@@ -38,16 +38,17 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
         val found = thermalMonitorController.find(thermalMonitorId) ?: return@withCoroutineScope createNotFound()
         thermalMonitorController.delete(found)
 
-        return@withCoroutineScope createNoContent()
+        createNoContent()
     }
 
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
     override fun findThermalMonitor(thermalMonitorId: UUID): Uni<Response> = withCoroutineScope {
         val found = thermalMonitorController.find(thermalMonitorId) ?: return@withCoroutineScope createNotFound()
-        return@withCoroutineScope createOk(thermalMonitorTranslator.translate(found))
+        createOk(thermalMonitorTranslator.translate(found))
     }
 
+    @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
     override fun listThermalMonitors(
         status: ThermalMonitorStatus?,
@@ -55,10 +56,13 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
         activeBefore: OffsetDateTime?,
         first: Int?,
         max: Int?
-    ): Uni<Response> {
-        TODO("Not yet implemented")
+    ): Uni<Response> = withCoroutineScope {
+        val list = thermalMonitorController.list(status, activeBefore, activeAfter, first, max)
+
+        createOk(list.map{ thermalMonitorEntity ->  thermalMonitorTranslator.translate(thermalMonitorEntity) })
     }
 
+    @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
     override fun updateThermalMonitor(thermalMonitorId: UUID, thermalMonitor: ThermalMonitor): Uni<Response> {
         TODO("Not yet implemented")

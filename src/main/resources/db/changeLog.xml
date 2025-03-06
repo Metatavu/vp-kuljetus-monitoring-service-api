@@ -5,20 +5,6 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="temperatureevent" author="Simeon Platonov">
-        <createTable tableName="temperatureevent">
-            <column name="id" type="binary(16)">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="sensorid" type="varchar(191)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="timestamp" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-
     <changeSet id="thermalmonitors" author="Simeon Platonov">
         <createTable tableName="thermalmonitor">
             <column name="id" type="binary(16)">
@@ -70,6 +56,7 @@
             <column name="modifiedat" type="datetime(6)">
                 <constraints nullable="false"/>
             </column>
+            <column name="lastmeasuredat" type="bigint"/>
         </createTable>
     </changeSet>
 

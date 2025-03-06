@@ -1,9 +1,8 @@
 package fi.metatavu.vp.monitoring.event
 
-import fi.metatavu.vp.monitoring.temperature.event.TemperatureEventController
-import fi.metatavu.vp.messaging.GlobalEventController
 import fi.metatavu.vp.messaging.WithCoroutineScope
 import fi.metatavu.vp.messaging.events.TemperatureGlobalEvent
+import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.quarkus.vertx.ConsumeEvent
 import io.smallrye.mutiny.Uni
@@ -21,10 +20,7 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
     lateinit var logger: Logger
 
     @Inject
-    lateinit var temperatureEventController: fi.metatavu.vp.monitoring.temperature.event.TemperatureEventController
-
-    @Inject
-    lateinit var globalEventController: GlobalEventController
+    lateinit var monitorThermometerController: MonitorThermometerController
 
     /**
      * Event bus consumer for temperature events
@@ -37,7 +33,9 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
     fun onTemperatureEvent(temperatureEvent: TemperatureGlobalEvent): Uni<Boolean> = withCoroutineScope {
         logger.info("Temperature event: $temperatureEvent")
 
-        temperatureEventController.saveEvent(sensorId = temperatureEvent.sensorId, timeStamp = temperatureEvent.timestamp)
+        monitorThermometerController
+            .listThermometers(thermometerId = temperatureEvent.thermometerId, thermalMonitorEntity = null)
+            .forEach{ monitorThermometerController.updateThermometerLastMeasuredAt(it, temperatureEvent.timestamp) }
 
         return@withCoroutineScope true
     }

@@ -12,6 +12,13 @@ import java.util.UUID
  */
 @ApplicationScoped
 class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity, UUID>() {
+    /**
+     * Save thermal monitor to the database
+     *
+     * @param thermometerId
+     * @param thermalMonitorEntity
+     * @param creatorId
+     */
     suspend fun create(thermometerId: UUID, thermalMonitorEntity: ThermalMonitorEntity, creatorId: UUID): MonitorThermometerEntity {
         val thermometer = MonitorThermometerEntity()
         thermometer.id = UUID.randomUUID()
@@ -22,13 +29,37 @@ class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity,
         return persistSuspending(thermometer)
     }
 
-    suspend fun list(thermalMonitorEntity: ThermalMonitorEntity): List<MonitorThermometerEntity> {
+    /**
+     * Lists thermometers
+     *
+     *  @param thermalMonitorEntity
+     *  @param thermometerId
+     */
+    suspend fun listThermometers(thermalMonitorEntity: ThermalMonitorEntity?, thermometerId: UUID?): List<MonitorThermometerEntity> {
         val queryBuilder = StringBuilder()
         val parameters = Parameters()
 
-        queryBuilder.append("thermalMonitor = :monitor")
-        parameters.and("monitor", thermalMonitorEntity)
+        if (thermalMonitorEntity != null) {
+            addCondition(queryBuilder, "thermalMonitor = :monitor")
+            parameters.and("monitor", thermalMonitorEntity)
+        }
+
+        if (thermometerId != null) {
+            addCondition(queryBuilder, "thermometerId = :thermometerId")
+            parameters.and("thermometerId", thermometerId)
+        }
 
         return find(queryBuilder.toString(), parameters).list<MonitorThermometerEntity>().awaitSuspending()
+    }
+
+    /**
+     * Update the time information about when this thermometer sent the latest measurement
+     * This is done when a new temperature event is received
+     *
+     * @param monitorThermometerEntity
+     */
+    suspend fun updateThermometerLastMeasuredAt(monitorThermometerEntity: MonitorThermometerEntity, lastMeasuredAt: Long) {
+        monitorThermometerEntity.lastMeasuredAt = lastMeasuredAt
+        persistSuspending(monitorThermometerEntity)
     }
 }

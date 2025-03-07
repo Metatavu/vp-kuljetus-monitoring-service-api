@@ -2,8 +2,7 @@ package fi.metatavu.vp.monitoring.monitors
 
 import fi.metatavu.vp.api.model.ThermalMonitor
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
-import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerRepository
-import io.smallrye.mutiny.coroutines.awaitSuspending
+import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import java.time.OffsetDateTime
@@ -15,7 +14,7 @@ class ThermalMonitorController {
     lateinit var thermalMonitorRepository: ThermalMonitorRepository
 
     @Inject
-    lateinit var monitorThermometerRepository: MonitorThermometerRepository
+    lateinit var monitorThermometerController: MonitorThermometerController
 
     /**
      * Create a thermal monitor to monitor for incidents
@@ -35,7 +34,7 @@ class ThermalMonitorController {
         )
 
         thermalMonitor.thermometerIds.forEach {
-            monitorThermometerRepository.create(thermometerId = it, thermalMonitorEntity = monitor, creatorId = creatorId)
+            monitorThermometerController.create(thermometerId = it, thermalMonitorEntity = monitor, creatorId = creatorId)
         }
 
         return monitor
@@ -56,8 +55,8 @@ class ThermalMonitorController {
      * @param thermalMonitorEntity
      */
     suspend fun delete(thermalMonitorEntity: ThermalMonitorEntity) {
-        monitorThermometerRepository.list(thermalMonitorEntity).forEach {
-            monitorThermometerRepository.deleteSuspending(it)
+        monitorThermometerController.listThermometers(thermalMonitorEntity = thermalMonitorEntity, thermometerId = null).forEach {
+            monitorThermometerController.delete(it)
         }
 
         thermalMonitorRepository.deleteSuspending(thermalMonitorEntity)
@@ -90,18 +89,18 @@ class ThermalMonitorController {
      * @param modifier modifier
      */
     suspend fun update(thermalMonitor: ThermalMonitor, thermalMonitorEntity: ThermalMonitorEntity, modifier: UUID): ThermalMonitorEntity {
-        val existingThermometers = monitorThermometerRepository.list(thermalMonitorEntity)
+        val existingThermometers = monitorThermometerController.listThermometers(thermalMonitorEntity = thermalMonitorEntity, thermometerId = null)
 
         existingThermometers.forEach {
             if (!thermalMonitor.thermometerIds.contains(it.thermometerId)) {
-                monitorThermometerRepository.deleteSuspending(it)
+                monitorThermometerController.delete(it)
             }
         }
 
         val existingIds = existingThermometers.map { it.thermometerId }
         thermalMonitor.thermometerIds.distinct().forEach {
             if (!existingIds.contains(it)) {
-                monitorThermometerRepository.create(
+                monitorThermometerController.create(
                     it,
                     thermalMonitorEntity,
                     modifier

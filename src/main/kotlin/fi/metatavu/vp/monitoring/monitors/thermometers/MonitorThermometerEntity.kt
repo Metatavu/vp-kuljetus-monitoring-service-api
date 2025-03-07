@@ -24,6 +24,9 @@ class MonitorThermometerEntity: Metadata() {
     @ManyToOne
     lateinit var thermalMonitor: ThermalMonitorEntity
 
+    @Column
+    var lastMeasuredAt: Long? = null
+
     override lateinit var creatorId: UUID
 
     override lateinit var lastModifierId: UUID

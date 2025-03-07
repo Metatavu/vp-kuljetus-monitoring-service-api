@@ -66,6 +66,13 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
 
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
+    override fun resolveMonitorStatuses(): Uni<Response> = withCoroutineScope {
+        loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
+
+    }
+
+    @RolesAllowed(MANAGER_ROLE)
+    @WithTransaction
     override fun updateThermalMonitor(thermalMonitorId: UUID, thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
         loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
 

@@ -111,4 +111,8 @@ class ThermalMonitorController {
 
         return thermalMonitorRepository.update(thermalMonitorEntity, thermalMonitor, modifier)
     }
+
+    suspend fun resolveMonitorStatuses() {
+
+    }
 }

@@ -5,7 +5,9 @@ import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
 import fi.metatavu.jaxrs.test.functional.builder.auth.AuthorizedTestBuilderAuthentication
 import fi.metatavu.jaxrs.test.functional.builder.auth.KeycloakAccessTokenProvider
+import fi.metatavu.jaxrs.test.functional.builder.auth.NullAccessTokenProvider
 import fi.metatavu.vp.monitoring.functional.auth.TestBuilderAuthentication
+import fi.metatavu.vp.monitoring.functional.settings.ApiTestSettings
 import fi.metatavu.vp.test.client.infrastructure.ApiClient
 import org.eclipse.microprofile.config.ConfigProvider
 
@@ -25,6 +27,17 @@ class TestBuilder(private val config: Map<String, String>): AbstractAccessTokenT
         authProvider: AccessTokenProvider
     ): AuthorizedTestBuilderAuthentication<ApiClient, AccessTokenProvider> {
         return TestBuilderAuthentication(this, authProvider)
+    }
+
+    /**
+     * Returns authentication with cron key
+     *
+     * @param cronKey cron task key
+     * @return authorized client
+     */
+    fun setCronKey(cronKey: String? = null): TestBuilderAuthentication {
+        val key = cronKey ?: ApiTestSettings.CRON_API_KEY
+        return TestBuilderAuthentication(this, NullAccessTokenProvider(), cronKey = key)
     }
 
     /**

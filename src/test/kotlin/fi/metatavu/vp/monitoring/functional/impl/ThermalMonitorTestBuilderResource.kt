@@ -18,6 +18,7 @@ import java.util.*
 class ThermalMonitorTestBuilderResource(
     testBuilder: TestBuilder,
     private val accessTokenProvider: AccessTokenProvider?,
+    private val cronKey: String?,
     apiClient: ApiClient
 ) : ApiTestBuilderResource<ThermalMonitor, ApiClient>(testBuilder, apiClient) {
 
@@ -26,6 +27,10 @@ class ThermalMonitorTestBuilderResource(
     }
 
     override fun getApi(): ThermalMonitorsApi {
+        if (cronKey != null) {
+            ApiClient.apiKey["X-CRON-Key"] = cronKey
+        }
+
         ApiClient.accessToken = accessTokenProvider?.accessToken
         return ThermalMonitorsApi(ApiTestSettings.apiBasePath)
     }
@@ -119,7 +124,13 @@ class ThermalMonitorTestBuilderResource(
      * @param first
      * @param max
      */
-    fun listThermalMonitors(status: ThermalMonitorStatus?, activeBefore: String?, activeAfter: String?, first: Int?, max: Int?): Array<ThermalMonitor> {
+    fun listThermalMonitors(
+        status: ThermalMonitorStatus? = null,
+        activeBefore: String? = null,
+        activeAfter: String? = null,
+        first: Int? = null,
+        max: Int? = null
+    ): Array<ThermalMonitor> {
         return api.listThermalMonitors(status = status, activeBefore = activeBefore, activeAfter = activeAfter, first = first, max = max)
     }
 
@@ -130,7 +141,7 @@ class ThermalMonitorTestBuilderResource(
      */
     fun assertListMonitorFail(expectedStatus: Int) {
         try {
-            listThermalMonitors(null, null, null, null, null)
+            listThermalMonitors()
             Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
         } catch (ex: ClientException) {
             assertClientExceptionStatus(expectedStatus, ex)
@@ -161,5 +172,15 @@ class ThermalMonitorTestBuilderResource(
         } catch (ex: ClientException) {
             assertClientExceptionStatus(expectedStatus, ex)
         }
+    }
+
+    /**
+     * Resolve statuses for monitors based on individual monitor's settings
+     *
+     *  - Set status to ACTIVE if monitor status is PENDING and monitor activeAfter is before now
+     *  - Set status to FINISHED if monitor status is ACTIVE and monitor activeBefore is before now
+     */
+    fun resolveMonitorStatuses() {
+        api.resolveMonitorStatuses()
     }
 }

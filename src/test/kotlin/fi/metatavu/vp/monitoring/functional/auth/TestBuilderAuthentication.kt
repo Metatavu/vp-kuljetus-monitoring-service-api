@@ -18,9 +18,10 @@ import fi.metatavu.vp.monitoring.functional.settings.ApiTestSettings
  */
 class TestBuilderAuthentication(
     private val testBuilder: TestBuilder,
-    val accessTokenProvider: AccessTokenProvider
-) : AccessTokenTestBuilderAuthentication<ApiClient>(testBuilder, accessTokenProvider) {
-    val thermalMonitors = ThermalMonitorTestBuilderResource(testBuilder, accessTokenProvider, createClient(accessTokenProvider))
+    val accessTokenProvider: AccessTokenProvider,
+    private val cronKey: String? = null,
+    ) : AccessTokenTestBuilderAuthentication<ApiClient>(testBuilder, accessTokenProvider) {
+    val thermalMonitors = ThermalMonitorTestBuilderResource(testBuilder, accessTokenProvider, cronKey, createClient(accessTokenProvider))
 
     override fun createClient(authProvider: AccessTokenProvider): ApiClient {
         val result = ApiClient(ApiTestSettings.apiBasePath)

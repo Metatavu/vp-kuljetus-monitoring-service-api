@@ -34,7 +34,11 @@ class ThermalMonitorController {
         )
 
         thermalMonitor.thermometerIds.forEach {
-            monitorThermometerController.create(thermometerId = it, thermalMonitorEntity = monitor, creatorId = creatorId)
+            monitorThermometerController.create(
+                thermometerId = it,
+                thermalMonitorEntity = monitor,
+                creatorId = creatorId
+            )
         }
 
         return monitor

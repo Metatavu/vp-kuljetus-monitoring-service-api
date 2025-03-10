@@ -103,16 +103,12 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             thermometerIds = arrayOf(),
         )
 
-        var i = 0
-        while (i < 10) {
+        for (i in 0..9) {
            it.manager.thermalMonitors.create(thermalMonitor)
-            i++
         }
 
-        i = 0
-        while (i < 5) {
+        for (i in 0..4) {
             it.manager.thermalMonitors.create(thermalMonitor2)
-            i++
         }
 
         val monitors = it.manager.thermalMonitors.listThermalMonitors(

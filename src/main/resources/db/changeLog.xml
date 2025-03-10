@@ -1,31 +1,62 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="examples" author="jari.nykanen">
-        <createTable tableName="example">
+    <changeSet id="thermalmonitors" author="Simeon Platonov">
+        <createTable tableName="thermalmonitor">
             <column name="id" type="binary(16)">
-                <constraints nullable="false" primaryKey="true"/>
+                <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="name" type="varchar(191)">
                 <constraints nullable="false"/>
             </column>
-            <column name="amount" type="int">
+            <column name="status" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="thresholdlow" type="float"/>
+            <column name="thresholdhigh" type="float"/>
+            <column name="activefrom" type="datetime(6)"/>
+            <column name="activeto" type="datetime(6)"/>
+            <column name="creatorid" type="binary(16)">
                 <constraints nullable="false"/>
             </column>
             <column name="createdat" type="datetime(6)">
                 <constraints nullable="false"/>
             </column>
+            <column name="lastmodifierid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
             <column name="modifiedat" type="datetime(6)">
                 <constraints nullable="false"/>
             </column>
+        </createTable>
+
+        <createTable tableName="monitorthermometer">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="thermometerid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="thermalmonitor_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitor" referencedColumnNames="id" foreignKeyName="FK_MONITORTHERMOMETER_THERMALMONITOR"/>
+            </column>
             <column name="creatorid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
                 <constraints nullable="false"/>
             </column>
             <column name="lastmodifierid" type="binary(16)">
                 <constraints nullable="false"/>
             </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastmeasuredat" type="bigint"/>
         </createTable>
     </changeSet>
 

@@ -61,7 +61,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     ): Uni<Response> = withCoroutineScope {
         val list = thermalMonitorController.list(status, activeBefore, activeAfter, first, max)
 
-        createOk(list.map{ thermalMonitorEntity ->  thermalMonitorTranslator.translate(thermalMonitorEntity) })
+        createOk(list.map{ thermalMonitorEntity -> thermalMonitorTranslator.translate(thermalMonitorEntity) })
     }
 
     @RolesAllowed(MANAGER_ROLE)

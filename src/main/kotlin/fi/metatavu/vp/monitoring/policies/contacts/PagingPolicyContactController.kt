@@ -1,5 +1,6 @@
 package fi.metatavu.vp.monitoring.policies.contacts
 
+import fi.metatavu.vp.api.model.PagingPolicyContact
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import java.util.*
@@ -41,5 +42,30 @@ class PagingPolicyContactController {
      */
     suspend fun find(id: UUID): PagingPolicyContactEntity? {
         return pagingPolicyContactRepository.findByIdSuspending(id)
+    }
+
+    /**
+     * List paging policies
+     *
+     * @param first first item index
+     * @param max max amount items
+     */
+    suspend fun list(first: Int?, max: Int?): List<PagingPolicyContactEntity> {
+        return pagingPolicyContactRepository.list(first, max).first
+    }
+
+    /**
+     * Update paging policy
+     *
+     * @param entityToUpdate
+     * @param entityFromRest
+     * @param modifierId
+     */
+    suspend fun update(entityToUpdate: PagingPolicyContactEntity, entityFromRest: PagingPolicyContact, modifierId: UUID): PagingPolicyContactEntity {
+        return pagingPolicyContactRepository.update(
+            entityToUpdate = entityToUpdate,
+            entityFromRest = entityFromRest,
+            modifierId = modifierId
+        )
     }
 }

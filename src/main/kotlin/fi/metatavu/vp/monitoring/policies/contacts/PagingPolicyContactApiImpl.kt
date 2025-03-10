@@ -58,8 +58,10 @@ class PagingPolicyContactApiImpl : PagingPolicyContactsApi, AbstractApi() {
 
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
-    override fun listPagingPolicyContacts(first: Int?, max: Int?): Uni<Response> {
-        TODO("Not yet implemented")
+    override fun listPagingPolicyContacts(first: Int?, max: Int?): Uni<Response> = withCoroutineScope {
+        val contacts = pagingPolicyContactController.list(first, max)
+
+        createOk(contacts.map { pagingPolicyContactTranslator.translate(it) })
     }
 
     @RolesAllowed(MANAGER_ROLE)
@@ -67,7 +69,16 @@ class PagingPolicyContactApiImpl : PagingPolicyContactsApi, AbstractApi() {
     override fun updatePagingPolicyContact(
         pagingPolicyContactId: UUID,
         pagingPolicyContact: PagingPolicyContact
-    ): Uni<Response> {
-        TODO("Not yet implemented")
+    ): Uni<Response> = withCoroutineScope {
+        if (loggedUserId == null) {
+            return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
+        }
+
+        val found = pagingPolicyContactController.find(pagingPolicyContactId) ?: return@withCoroutineScope createNotFound()
+        createOk(pagingPolicyContactTranslator.translate(pagingPolicyContactController.update(
+            entityToUpdate = found,
+            entityFromRest = pagingPolicyContact,
+            modifierId = loggedUserId!!
+        )))
     }
 }

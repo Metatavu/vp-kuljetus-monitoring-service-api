@@ -4,6 +4,7 @@ import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenTestBuilderAuthentication
 import fi.metatavu.vp.test.client.infrastructure.ApiClient
 import fi.metatavu.vp.monitoring.functional.TestBuilder
+import fi.metatavu.vp.monitoring.functional.impl.PagingPolicyContactTestBuilderResource
 import fi.metatavu.vp.monitoring.functional.impl.ThermalMonitorTestBuilderResource
 import fi.metatavu.vp.monitoring.functional.settings.ApiTestSettings
 
@@ -21,6 +22,7 @@ class TestBuilderAuthentication(
     val accessTokenProvider: AccessTokenProvider
 ) : AccessTokenTestBuilderAuthentication<ApiClient>(testBuilder, accessTokenProvider) {
     val thermalMonitors = ThermalMonitorTestBuilderResource(testBuilder, accessTokenProvider, createClient(accessTokenProvider))
+    val pagingPolicyContacts = PagingPolicyContactTestBuilderResource(testBuilder, accessTokenProvider, createClient(accessTokenProvider))
 
     override fun createClient(authProvider: AccessTokenProvider): ApiClient {
         val result = ApiClient(ApiTestSettings.apiBasePath)

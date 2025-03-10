@@ -37,15 +37,15 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
         val created = it.manager.thermalMonitors.create(thermalMonitor)
 
-        assertEquals("test", created.name)
-        assertEquals(ThermalMonitorStatus.ACTIVE, created.status)
-        assertEquals(-50f, created.lowerThresholdTemperature)
-        assertEquals(50f, created.upperThresholdTemperature)
-        assertEquals(activeFrom.toString().split(".")[0], OffsetDateTime.parse(created.activeFrom).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0])
-        assertEquals(activeTo.toString().split(".")[0], OffsetDateTime.parse(created.activeTo).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0])
-        assertEquals(2, created.thermometerIds.size)
-        assertNotNull(created.thermometerIds.find { thermometer -> thermometer == thermometer1 })
-        assertNotNull(created.thermometerIds.find { thermometer -> thermometer == thermometer2 })
+        assertEquals("test", created.name, "Monitor creation should return monitor with name test")
+        assertEquals(ThermalMonitorStatus.ACTIVE, created.status, "Monitor creation should return monitor with status ACTIVE")
+        assertEquals(-50f, created.lowerThresholdTemperature, "Monitor creation should return monitor with lowerThresholdTemperature -50f")
+        assertEquals(50f, created.upperThresholdTemperature, "Monitor creation should return monitor with upperThresholdTemperature 50f")
+        assertEquals(activeFrom.toString().split(".")[0], OffsetDateTime.parse(created.activeFrom).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0], "Monitor creation returned different activeFrom-time than what was entered")
+        assertEquals(activeTo.toString().split(".")[0], OffsetDateTime.parse(created.activeTo).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0], "Monitor creation returned different activeTo-time than what was entered")
+        assertEquals(2, created.thermometerIds.size, "Monitor creation should have returned monitor with 2 thermometerIds")
+        assertNotNull(created.thermometerIds.find { thermometer -> thermometer == thermometer1 }, "Monitor creation did not return the same id for the first thermometer than what was entered")
+        assertNotNull(created.thermometerIds.find { thermometer -> thermometer == thermometer2 }, "Monitor creation did not return the same id for the second thermometer than what was entered")
 
         it.user.thermalMonitors.assertCreateFail(403, thermalMonitor)
     }
@@ -61,7 +61,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         val created = it.manager.thermalMonitors.create(thermalMonitor)
 
         val found = it.manager.thermalMonitors.findThermalMonitor(created.id!!)
-        assertEquals(created.id, found.id)
+        assertEquals(created.id, found.id, "Returned id for monitor find is different than what was entered")
 
         it.manager.thermalMonitors.assertFindMonitorFail(404, UUID.randomUUID())
         it.user.thermalMonitors.assertFindMonitorFail(403, created.id)
@@ -123,7 +123,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             null
         )
 
-        assertEquals(15, monitors.size)
+        assertEquals(15, monitors.size, "The listed amount of monitors is different from the amount of monitors created")
 
         val monitors2 = it.manager.thermalMonitors.listThermalMonitors(
             null,
@@ -133,7 +133,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             max = 1000
         )
 
-        assertEquals(12, monitors2.size)
+        assertEquals(12, monitors2.size, "There should be 12 monitors that fit the list filters")
 
         val monitors3 = it.manager.thermalMonitors.listThermalMonitors(
             null,
@@ -143,7 +143,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             max = 10
         )
 
-        assertEquals(10, monitors3.size)
+        assertEquals(10, monitors3.size, "There should be 10 monitors that fit the list filters")
 
         val monitors4 = it.manager.thermalMonitors.listThermalMonitors(
             ThermalMonitorStatus.PENDING,
@@ -153,7 +153,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             null
         )
 
-        assertEquals(5, monitors4.size)
+        assertEquals(5, monitors4.size, "There should be 5 monitors that fit the list filters")
 
         it.user.thermalMonitors.assertListMonitorFail(403)
     }
@@ -201,7 +201,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             null
         )
 
-        assertEquals(2, monitors1.size)
+        assertEquals(2, monitors1.size, "There should be 2 monitors that fit the list filters")
 
         val monitors2 = it.manager.thermalMonitors.listThermalMonitors(
             null,
@@ -211,7 +211,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             null
         )
 
-        assertEquals(1, monitors2.size)
+        assertEquals(1, monitors2.size, "There should be 1 monitor that fits the list filters")
     }
 
     @Test
@@ -249,15 +249,15 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
         val updated = it.manager.thermalMonitors.update(updatedData.id!!, updatedData)
 
-        assertEquals("updated", updated.name)
-        assertEquals(ThermalMonitorStatus.FINISHED, updated.status)
-        assertEquals(-100f, updated.lowerThresholdTemperature)
-        assertEquals(100f, updated.upperThresholdTemperature)
-        assertEquals(activeFromNew.toString().split(".")[0], OffsetDateTime.parse(updated.activeFrom).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0])
-        assertEquals(activeToNew.toString().split(".")[0], OffsetDateTime.parse(updated.activeTo).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0])
-        assertEquals(2, updated.thermometerIds.size)
-        assertNotNull(updated.thermometerIds.find { thermometer -> thermometer == thermometer2 })
-        assertNotNull(updated.thermometerIds.find { thermometer -> thermometer == thermometer3 })
+        assertEquals("updated", updated.name, "Monitor update should have returned monitor with name 'updated'")
+        assertEquals(ThermalMonitorStatus.FINISHED, updated.status, "Monitor update should have returned monitor with status FINISHED")
+        assertEquals(-100f, updated.lowerThresholdTemperature, "Monitor update should have returned monitor with lowerThresholdTemperature -100f")
+        assertEquals(100f, updated.upperThresholdTemperature, "Monitor update should have returned monitor with upperThresholdTemperature -100f")
+        assertEquals(activeFromNew.toString().split(".")[0], OffsetDateTime.parse(updated.activeFrom).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0], "Monitor update returned different activeFrom-time than what was expected")
+        assertEquals(activeToNew.toString().split(".")[0], OffsetDateTime.parse(updated.activeTo).atZoneSameInstant(ZoneId.systemDefault()).toString().split(".")[0], "Monitor update returned different activeTo-time than what was expected")
+        assertEquals(2, updated.thermometerIds.size, "Monitor update should have returned monitor with 2 thermometers")
+        assertNotNull(updated.thermometerIds.find { thermometer -> thermometer == thermometer2 }, "Updated monitor does not contain the expected monitor $thermometer2")
+        assertNotNull(updated.thermometerIds.find { thermometer -> thermometer == thermometer3 }, "Updated monitor does not contain the expected monitor $thermometer3")
 
         it.manager.thermalMonitors.assertUpdateFail(404, UUID.randomUUID(), thermalMonitor)
         it.user.thermalMonitors.assertUpdateFail(403, updatedData.id, updatedData)

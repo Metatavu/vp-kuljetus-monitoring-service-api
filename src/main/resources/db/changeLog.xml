@@ -16,10 +16,10 @@
             <column name="status" type="varchar(191)">
                 <constraints nullable="false"/>
             </column>
-            <column name="thresholdlow" type ="float"/>
-            <column name="thresholdhigh" type ="float"/>
-            <column name="activefrom" type ="datetime(6)"/>
-            <column name="activeto" type ="datetime(6)"/>
+            <column name="thresholdlow" type="float"/>
+            <column name="thresholdhigh" type="float"/>
+            <column name="activefrom" type="datetime(6)"/>
+            <column name="activeto" type="datetime(6)"/>
             <column name="creatorid" type="binary(16)">
                 <constraints nullable="false"/>
             </column>

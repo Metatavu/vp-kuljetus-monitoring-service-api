@@ -17,11 +17,13 @@ class PagingPolicyContactRepository: AbstractRepository<PagingPolicyContactEntit
     suspend fun create(name: String?, email: String?, creatorId: UUID): PagingPolicyContactEntity {
         val contact = PagingPolicyContactEntity()
         contact.id = UUID.randomUUID()
-        contact.name = name
+        contact.contactName = name
         contact.email = email
         contact.creatorId = creatorId
         contact.lastModifierId = creatorId
 
         return persistSuspending(contact)
     }
+
+    
 }

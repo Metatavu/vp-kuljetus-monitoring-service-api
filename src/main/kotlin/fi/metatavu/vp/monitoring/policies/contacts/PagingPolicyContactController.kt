@@ -31,7 +31,7 @@ class PagingPolicyContactController {
      * @param contact
      */
     suspend fun delete(contact: PagingPolicyContactEntity) {
-        pagingPolicyContactRepository.delete(contact)
+        pagingPolicyContactRepository.deleteSuspending(contact)
     }
 
     /**

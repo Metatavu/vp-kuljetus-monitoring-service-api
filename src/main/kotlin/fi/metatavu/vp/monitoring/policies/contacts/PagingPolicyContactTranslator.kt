@@ -15,7 +15,7 @@ class PagingPolicyContactTranslator: AbstractTranslator<PagingPolicyContactEntit
     override suspend fun translate(entity: PagingPolicyContactEntity): PagingPolicyContact {
         return PagingPolicyContact(
             id = entity.id,
-            name = entity.name,
+            name = entity.contactName,
             email = entity.email
         )
     }

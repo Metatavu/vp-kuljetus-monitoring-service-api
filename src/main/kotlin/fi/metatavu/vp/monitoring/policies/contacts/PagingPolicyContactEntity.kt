@@ -14,7 +14,7 @@ class PagingPolicyContactEntity: Metadata() {
     lateinit var id: UUID
 
     @Column
-    var name: String? = null
+    var contactName: String? = null
 
     @Column
     var email: String? = null

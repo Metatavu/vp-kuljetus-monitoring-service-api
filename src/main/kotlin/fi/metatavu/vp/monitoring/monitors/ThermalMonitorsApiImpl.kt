@@ -71,7 +71,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
             max =  max
         )
 
-        createOk(list.map{ thermalMonitorEntity ->  thermalMonitorTranslator.translate(thermalMonitorEntity) })
+        createOk(list.map{ thermalMonitorEntity -> thermalMonitorTranslator.translate(thermalMonitorEntity) })
     }
 
     @WithSession

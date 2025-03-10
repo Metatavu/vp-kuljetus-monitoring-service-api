@@ -18,7 +18,11 @@ class MonitorThermometerController {
      * @param creatorId
      */
     suspend fun create(thermometerId: UUID, thermalMonitorEntity: ThermalMonitorEntity, creatorId: UUID): MonitorThermometerEntity {
-        return monitorThermometerRepository.create(thermometerId = thermometerId, thermalMonitorEntity = thermalMonitorEntity, creatorId = creatorId)
+        return monitorThermometerRepository.create(
+            thermometerId = thermometerId,
+            thermalMonitorEntity = thermalMonitorEntity,
+            creatorId = creatorId
+        )
     }
 
     /**
@@ -28,7 +32,10 @@ class MonitorThermometerController {
      *  @param thermometerId
      */
     suspend fun listThermometers(thermalMonitorEntity: ThermalMonitorEntity?, thermometerId: UUID?): List<MonitorThermometerEntity> {
-        return monitorThermometerRepository.listThermometers(thermalMonitorEntity = thermalMonitorEntity, thermometerId = thermometerId)
+        return monitorThermometerRepository.listThermometers(
+            thermalMonitorEntity = thermalMonitorEntity,
+            thermometerId = thermometerId
+        )
     }
 
     /**
@@ -47,7 +54,10 @@ class MonitorThermometerController {
      * @param monitorThermometerEntity
      */
     suspend fun updateThermometerLastMeasuredAt(monitorThermometerEntity: MonitorThermometerEntity, lastMeasuredAt: Long) {
-        monitorThermometerRepository.updateThermometerLastMeasuredAt(monitorThermometerEntity, lastMeasuredAt)
+        monitorThermometerRepository.updateThermometerLastMeasuredAt(
+            monitorThermometerEntity,
+            lastMeasuredAt
+        )
     }
 
 

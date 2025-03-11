@@ -96,7 +96,7 @@
             <column name="priority" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="escalationseconds" type="int">
+            <column name="escalationdelayseconds" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="creatorid" type="binary(16)">

@@ -24,7 +24,7 @@ class ThermalMonitorPagingPolicyEntity: Metadata() {
     var priority: Int? = null
 
     @Column(nullable = false)
-    var escalationSeconds: Int? = null
+    var escalationDelaySeconds: Int? = null
 
     @ManyToOne
     lateinit var pagingPolicyContact: PagingPolicyContact

@@ -95,7 +95,7 @@ class ThermalMonitorPagingPoliciesApiImpl: ThermalMonitorPagingPoliciesApi, Abst
             max = max
         )
 
-        createOk(policies.forEach { pagingPolicyTranslator.translate(it) })
+        createOk(policies.map { pagingPolicyTranslator.translate(it) })
     }
 
     @RolesAllowed(MANAGER_ROLE)

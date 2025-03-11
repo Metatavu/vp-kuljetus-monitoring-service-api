@@ -1,6 +1,5 @@
 package fi.metatavu.vp.monitoring.policies
 
-import fi.metatavu.vp.api.model.ThermalMonitorPagingPolicy
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.persistence.AbstractRepository
 import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactEntity

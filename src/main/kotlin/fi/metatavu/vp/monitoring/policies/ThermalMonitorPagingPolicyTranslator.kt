@@ -15,10 +15,12 @@ class ThermalMonitorPagingPolicyTranslator: AbstractTranslator<ThermalMonitorPag
      */
     override suspend fun translate(entity: ThermalMonitorPagingPolicyEntity): ThermalMonitorPagingPolicy {
         return ThermalMonitorPagingPolicy(
+            id = entity.id,
             type = PagingPolicyType.valueOf(entity.policyType),
             contactId = entity.pagingPolicyContact.id,
             priority = entity.priority!!,
-            escalationDelaySeconds = entity.escalationDelaySeconds!!
+            escalationDelaySeconds = entity.escalationDelaySeconds!!,
+            thermalMonitorId = entity.thermalMonitor.id
         )
     }
 }

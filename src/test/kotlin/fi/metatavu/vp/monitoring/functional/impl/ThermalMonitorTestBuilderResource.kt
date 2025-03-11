@@ -119,7 +119,13 @@ class ThermalMonitorTestBuilderResource(
      * @param first
      * @param max
      */
-    fun listThermalMonitors(status: ThermalMonitorStatus?, activeBefore: String?, activeAfter: String?, first: Int?, max: Int?): Array<ThermalMonitor> {
+    fun listThermalMonitors(
+        status: ThermalMonitorStatus?,
+        activeBefore: String?,
+        activeAfter: String?,
+        first: Int?,
+        max: Int?
+    ): Array<ThermalMonitor> {
         return api.listThermalMonitors(status = status, activeBefore = activeBefore, activeAfter = activeAfter, first = first, max = max)
     }
 

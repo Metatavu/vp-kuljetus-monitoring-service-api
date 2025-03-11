@@ -59,6 +59,7 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         status: ThermalMonitorStatus?,
         activeAfter: OffsetDateTime?,
         activeBefore: OffsetDateTime?,
+        toBeActivatedBefore: OffsetDateTime?,
         first: Int?,
         max: Int?
     ): Pair<List<ThermalMonitorEntity>, Long> {
@@ -80,6 +81,11 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
             parameters.and("activeBefore", activeBefore)
         }
 
+        if (toBeActivatedBefore != null)  {
+            addCondition(queryBuilder, "activeFrom < :toBeActivatedBefore")
+            parameters.and("toBeActivatedBefore", toBeActivatedBefore)
+        }
+
         return applyFirstMaxToQuery(find(queryBuilder.toString(), parameters), firstIndex = first, maxResults = max)
     }
 
@@ -90,7 +96,7 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
      * @param thermalMonitor updated data
      * @param modifier modifier
      */
-    suspend fun update(thermalMonitorEntity: ThermalMonitorEntity, thermalMonitor: ThermalMonitor, modifier: UUID): ThermalMonitorEntity {
+    suspend fun updateFromRest(thermalMonitorEntity: ThermalMonitorEntity, thermalMonitor: ThermalMonitor, modifier: UUID): ThermalMonitorEntity {
         val updated = thermalMonitorEntity
         updated.name = thermalMonitor.name
         updated.status = thermalMonitor.status.toString()
@@ -102,5 +108,27 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         updated.activeTo = thermalMonitor.activeTo
 
         return persistSuspending(updated)
+    }
+
+    /**
+     * Activate a thermal monitor
+     * This is used by the cron job that changes monitor statuses based on monitor settings
+     *
+     * @param thermalMonitorEntity
+     */
+    suspend fun activateThermalMonitor(thermalMonitorEntity: ThermalMonitorEntity): ThermalMonitorEntity {
+        thermalMonitorEntity.status = ThermalMonitorStatus.ACTIVE.toString()
+        return persistSuspending(thermalMonitorEntity)
+    }
+
+    /**
+     * Finish a thermal monitor
+     * This is used by the cron job that changes monitor statuses based on monitor settings
+     *
+     * @param thermalMonitorEntity
+     */
+    suspend fun finishThermalMonitor(thermalMonitorEntity: ThermalMonitorEntity): ThermalMonitorEntity {
+        thermalMonitorEntity.status = ThermalMonitorStatus.FINISHED.toString()
+        return persistSuspending(thermalMonitorEntity)
     }
 }

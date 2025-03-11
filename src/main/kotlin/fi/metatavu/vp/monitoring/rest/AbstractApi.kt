@@ -211,6 +211,16 @@ abstract class AbstractApi {
     }
 
     /**
+     * Returns CRON key
+     *
+     * @return request cron key
+     */
+    protected val requestCronKey: String?
+        get() {
+            return headers.getHeaderString("X-CRON-Key")
+        }
+
+    /**
      * Executes a block with coroutine scope
      *
      * @param requestTimeOut request timeout in milliseconds. Default is 10000

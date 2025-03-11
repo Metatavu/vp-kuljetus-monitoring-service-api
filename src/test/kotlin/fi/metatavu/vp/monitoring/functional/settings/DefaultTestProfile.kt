@@ -1,5 +1,6 @@
 package fi.metatavu.vp.monitoring.functional.settings
 
+import fi.metatavu.vp.monitoring.functional.settings.ApiTestSettings.Companion.CRON_API_KEY
 import io.quarkus.test.junit.QuarkusTestProfile
 
 /**
@@ -17,6 +18,7 @@ class DefaultTestProfile: QuarkusTestProfile {
         config["mp.messaging.incoming.vp-in.queue.x-queue-type"] = "quorum"
         config["mp.messaging.incoming.vp-in.exchange.name"] = EXCHANGE_NAME
         config["mp.messaging.incoming.vp-in.routing-keys"] = "TEMPERATURE"
+        config["vp.monitoring.cron.apiKey"] = CRON_API_KEY
         return config
     }
 

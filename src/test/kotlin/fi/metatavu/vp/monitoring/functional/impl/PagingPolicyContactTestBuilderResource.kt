@@ -111,4 +111,54 @@ class PagingPolicyContactTestBuilderResource(
             assertClientExceptionStatus(expectedStatus, ex)
         }
     }
+
+    /**
+     * List paging policy contacts
+     *
+     * @param first
+     * @param max
+     */
+    fun listPagingPolicyContacts(first: Int?, max: Int?): Array<PagingPolicyContact> {
+        return api.listPagingPolicyContacts(first, max)
+    }
+
+    /**
+     * Asserts that paging policy contact list fails with expected status
+     *
+     * @param expectedStatus expected status
+     */
+    fun assertListPagingPolicyContactsFail(expectedStatus: Int) {
+        try {
+            listPagingPolicyContacts(null, null)
+            Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
+        } catch (ex: ClientException) {
+            assertClientExceptionStatus(expectedStatus, ex)
+        }
+    }
+
+    /**
+     * Updates a paging policy contact
+     *
+     * @param id
+     * @param pagingPolicyContact
+     */
+    fun update(id: UUID, pagingPolicyContact: PagingPolicyContact): PagingPolicyContact {
+        return api.updatePagingPolicyContact(id, pagingPolicyContact)
+    }
+
+    /**
+     * Asserts that paging policy contact update fails with expected status
+     *
+     * @param expectedStatus
+     * @param id
+     * @param pagingPolicyContact
+     */
+    fun assertUpdateFail(expectedStatus: Int, id: UUID, pagingPolicyContact: PagingPolicyContact) {
+        try {
+            update(id, pagingPolicyContact)
+            Assert.fail(String.format("Expected update to fail with status %d", expectedStatus))
+        } catch (ex: ClientException) {
+            assertClientExceptionStatus(expectedStatus, ex)
+        }
+    }
 }

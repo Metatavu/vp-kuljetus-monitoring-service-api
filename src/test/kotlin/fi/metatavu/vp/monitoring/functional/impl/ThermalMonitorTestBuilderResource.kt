@@ -124,7 +124,7 @@ class ThermalMonitorTestBuilderResource(
     }
 
     /**
-     * Asserts that thermal monitor find fails with expected status
+     * Asserts that thermal monitor list fails with expected status
      *
      * @param expectedStatus expected status
      */

@@ -90,6 +90,9 @@
             <column name="pagingpolicycontact_id" type="binary(16)">
                 <constraints nullable="false" referencedTableName="pagingpolicycontact" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORPAGINGPOLICY_PAGINGPOLICYCONTACT"/>
             </column>
+            <column name="thermalmonitor_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitor" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORPAGINGPOLICY_THERMALMONITOR"/>
+            </column>
             <column name="policytype" type="varchar(191)">
                 <constraints nullable="false"/>
             </column>

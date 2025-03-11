@@ -64,10 +64,6 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
         createOk(list.map{ thermalMonitorEntity -> thermalMonitorTranslator.translate(thermalMonitorEntity) })
     }
 
-    override fun resolveMonitorStatuses(): Uni<Response> {
-        TODO("Not yet implemented")
-    }
-
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
     override fun updateThermalMonitor(thermalMonitorId: UUID, thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {

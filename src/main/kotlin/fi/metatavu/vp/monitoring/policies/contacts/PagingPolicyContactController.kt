@@ -1,6 +1,7 @@
 package fi.metatavu.vp.monitoring.policies.contacts
 
 import fi.metatavu.vp.api.model.PagingPolicyContact
+import fi.metatavu.vp.monitoring.policies.PagingPolicyController
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import java.util.*
@@ -10,6 +11,9 @@ class PagingPolicyContactController {
 
     @Inject
     lateinit var pagingPolicyContactRepository: PagingPolicyContactRepository
+
+    @Inject
+    lateinit var pagingPolicyController: PagingPolicyController
 
     /**
      * Save a paging policy contact to the database
@@ -32,6 +36,8 @@ class PagingPolicyContactController {
      * @param contact
      */
     suspend fun delete(contact: PagingPolicyContactEntity) {
+        pagingPolicyController.deletePoliciesByContact(contact)
+
         pagingPolicyContactRepository.deleteSuspending(contact)
     }
 

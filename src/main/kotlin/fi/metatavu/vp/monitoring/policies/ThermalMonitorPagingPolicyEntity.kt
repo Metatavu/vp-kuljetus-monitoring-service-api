@@ -1,7 +1,8 @@
 package fi.metatavu.vp.monitoring.policies
 
-import fi.metatavu.vp.api.model.PagingPolicyContact
+import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.persistence.Metadata
+import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
@@ -27,7 +28,10 @@ class ThermalMonitorPagingPolicyEntity: Metadata() {
     var escalationDelaySeconds: Int? = null
 
     @ManyToOne
-    lateinit var pagingPolicyContact: PagingPolicyContact
+    lateinit var pagingPolicyContact: PagingPolicyContactEntity
+
+    @ManyToOne
+    lateinit var thermalMonitor: ThermalMonitorEntity
 
     override lateinit var creatorId: UUID
 

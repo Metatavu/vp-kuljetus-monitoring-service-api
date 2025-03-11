@@ -3,6 +3,7 @@ package fi.metatavu.vp.monitoring.monitors
 import fi.metatavu.vp.api.model.ThermalMonitor
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
+import fi.metatavu.vp.monitoring.policies.PagingPolicyController
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import java.time.OffsetDateTime
@@ -15,6 +16,9 @@ class ThermalMonitorController {
 
     @Inject
     lateinit var monitorThermometerController: MonitorThermometerController
+
+    @Inject
+    lateinit var pagingPolicyController: PagingPolicyController
 
     /**
      * Create a thermal monitor to monitor for incidents
@@ -62,6 +66,8 @@ class ThermalMonitorController {
         monitorThermometerController.listThermometers(thermalMonitorEntity = thermalMonitorEntity, thermometerId = null).forEach {
             monitorThermometerController.delete(it)
         }
+
+        pagingPolicyController.deletePoliciesByMonitor(thermalMonitorEntity)
 
         thermalMonitorRepository.deleteSuspending(thermalMonitorEntity)
     }

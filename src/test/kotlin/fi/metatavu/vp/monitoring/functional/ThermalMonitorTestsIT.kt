@@ -269,7 +269,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.PENDING).size, "Only one monitor should be PENDING at this point")
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "Only one monitor should be ACTIVE at this point")
 
-        assertEquals(ThermalMonitorStatus.ACTIVE, it.manager.thermalMonitors.findThermalMonitor(monitorToActivate.id!!).status)
+        assertEquals(ThermalMonitorStatus.ACTIVE, it.manager.thermalMonitors.findThermalMonitor(monitorToActivate.id!!).status, "Monitor ${monitorToActivate.id} should be ACTIVE at this point")
 
         val activeFrom10DaysAgo = OffsetDateTime.now().minusDays(10)
         val activeTo1DayAgo = OffsetDateTime.now().minusDays(1)
@@ -292,6 +292,6 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.FINISHED).size, "There should be only one FINISHED monitor at this point")
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be only one ACTIVE monitor at this point")
 
-        assertEquals(ThermalMonitorStatus.FINISHED, it.manager.thermalMonitors.findThermalMonitor(monitorToFinish.id!!).status)
+        assertEquals(ThermalMonitorStatus.FINISHED, it.manager.thermalMonitors.findThermalMonitor(monitorToFinish.id!!).status, "Monitor ${monitorToFinish.id} should be FINISHED at this point")
     }
 }

@@ -15,11 +15,7 @@ import java.util.*
 @QuarkusTest
 @TestProfile(DefaultTestProfile::class)
 class PagingPolicyContactTestsIT: AbstractFunctionalTest() {
-    @Test
-    fun testFail() = createTestBuilder().use {
-        assertEquals(1, 0)
-    }
-    
+
     @Test
     fun testCreatePagingPolicyContact() = createTestBuilder().use {
         val pagingPolicyContact = PagingPolicyContact(

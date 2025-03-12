@@ -70,7 +70,7 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
 
     @Test
     fun testFindPagingPolicyIT() = createTestBuilder().use {
-        val contact =  it.manager.pagingPolicyContacts.create(PagingPolicyContact(
+        val contact = it.manager.pagingPolicyContacts.create(PagingPolicyContact(
             email = "test@domain.com",
             name = "Test"
         ))

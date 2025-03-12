@@ -4,6 +4,7 @@ import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.persistence.AbstractRepository
 import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactEntity
 import io.quarkus.panache.common.Parameters
+import io.quarkus.panache.common.Sort
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import jakarta.enterprise.context.ApplicationScoped
 import java.util.UUID
@@ -62,7 +63,7 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
         parameters.and("thermalMonitor", thermalMonitor)
 
         return applyFirstMaxToQuery(
-            find(queryBuilder.toString(), parameters),
+            find(queryBuilder.toString(), Sort.ascending("priority"), parameters),
             firstIndex = first,
             maxResults = max
         )

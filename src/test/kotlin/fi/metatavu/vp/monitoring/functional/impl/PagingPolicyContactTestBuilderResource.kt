@@ -5,13 +5,9 @@ import fi.metatavu.vp.test.client.models.PagingPolicyContact
 import fi.metatavu.vp.monitoring.functional.TestBuilder
 import fi.metatavu.vp.monitoring.functional.settings.ApiTestSettings
 import fi.metatavu.vp.test.client.apis.PagingPolicyContactsApi
-import fi.metatavu.vp.test.client.apis.ThermalMonitorsApi
 import fi.metatavu.vp.test.client.infrastructure.ApiClient
 import fi.metatavu.vp.test.client.infrastructure.ClientException
-import fi.metatavu.vp.test.client.models.ThermalMonitor
-import fi.metatavu.vp.test.client.models.ThermalMonitorStatus
 import org.junit.Assert
-import java.time.OffsetDateTime
 import java.util.*
 
 /**

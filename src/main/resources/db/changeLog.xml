@@ -82,4 +82,38 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="pagingpolicies" author="Simeon Platonov">
+        <createTable tableName="thermalmonitorpagingpolicy">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="pagingpolicycontact_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="pagingpolicycontact" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORPAGINGPOLICY_PAGINGPOLICYCONTACT"/>
+            </column>
+            <column name="thermalmonitor_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitor" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORPAGINGPOLICY_THERMALMONITOR"/>
+            </column>
+            <column name="policytype" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="priority" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="escalationdelayseconds" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creatorid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastmodifierid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

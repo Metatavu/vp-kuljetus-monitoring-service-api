@@ -59,5 +59,27 @@
             <column name="lastmeasuredat" type="bigint"/>
         </createTable>
     </changeSet>
+    
+    <changeSet id="pagingpolicycontacts" author="Simeon Platonov">
+        <createTable tableName="pagingpolicycontact">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email" type="varchar(191)"/>
+            <column name="contactname" type="varchar(191)"/>
+            <column name="creatorid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastmodifierid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 
 </databaseChangeLog>

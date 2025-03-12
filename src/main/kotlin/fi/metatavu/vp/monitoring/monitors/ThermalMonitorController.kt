@@ -72,14 +72,23 @@ class ThermalMonitorController {
      * @param status
      * @param activeBefore
      * @param activeAfter
+     * @param toBeActivatedBefore
      * @param first
      * @param max
      */
-    suspend fun list(status: ThermalMonitorStatus?, activeBefore: OffsetDateTime?, activeAfter: OffsetDateTime?, first: Int?, max: Int?): List<ThermalMonitorEntity> {
+    suspend fun list(
+        status: ThermalMonitorStatus? = null,
+        activeBefore: OffsetDateTime? = null,
+        activeAfter: OffsetDateTime? = null,
+        toBeActivatedBefore: OffsetDateTime? = null,
+        first: Int? = null,
+        max: Int? = null
+    ): List<ThermalMonitorEntity> {
         return thermalMonitorRepository.list(
             status = status,
             activeAfter = activeAfter,
             activeBefore = activeBefore,
+            toBeActivatedBefore = toBeActivatedBefore,
             first = first,
             max = max
         ).first
@@ -92,7 +101,7 @@ class ThermalMonitorController {
      * @param thermalMonitorEntity existing entity
      * @param modifier modifier
      */
-    suspend fun update(thermalMonitor: ThermalMonitor, thermalMonitorEntity: ThermalMonitorEntity, modifier: UUID): ThermalMonitorEntity {
+    suspend fun updateFromRest(thermalMonitor: ThermalMonitor, thermalMonitorEntity: ThermalMonitorEntity, modifier: UUID): ThermalMonitorEntity {
         val existingThermometers = monitorThermometerController.listThermometers(thermalMonitorEntity = thermalMonitorEntity, thermometerId = null)
 
         existingThermometers.forEach {
@@ -112,6 +121,24 @@ class ThermalMonitorController {
             }
         }
 
-        return thermalMonitorRepository.update(thermalMonitorEntity, thermalMonitor, modifier)
+        return thermalMonitorRepository.updateFromRest(thermalMonitorEntity, thermalMonitor, modifier)
+    }
+
+    /**
+     * Resolve statuses for monitors based on individual monitor's settings
+     *
+     *  - Set status to ACTIVE if monitor status is PENDING and monitor activeFrom is before now
+     *  - Set status to FINISHED if monitor status is ACTIVE and monitor activeTo is before now
+     */
+    suspend fun resolveMonitorStatuses() {
+        list(
+            status = ThermalMonitorStatus.PENDING,
+            toBeActivatedBefore = OffsetDateTime.now()
+        ).forEach { thermalMonitorRepository.activateThermalMonitor(it) }
+
+        list(
+            status = ThermalMonitorStatus.ACTIVE,
+            activeBefore = OffsetDateTime.now()
+        ).forEach { thermalMonitorRepository.finishThermalMonitor(it) }
     }
 }

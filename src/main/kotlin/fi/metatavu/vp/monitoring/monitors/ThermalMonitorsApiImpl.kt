@@ -11,6 +11,7 @@ import jakarta.annotation.security.RolesAllowed
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
 import jakarta.ws.rs.core.Response
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -22,6 +23,9 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
 
     @Inject
     lateinit var thermalMonitorTranslator: ThermalMonitorTranslator
+
+    @ConfigProperty(name = "vp.monitoring.cron.apiKey")
+    lateinit var cronKey: String
 
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
@@ -59,13 +63,27 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
         first: Int?,
         max: Int?
     ): Uni<Response> = withCoroutineScope {
-        val list = thermalMonitorController.list(status, activeBefore, activeAfter, first, max)
+        val list = thermalMonitorController.list(
+            status = status,
+            activeBefore = activeBefore,
+            activeAfter = activeAfter,
+            first = first,
+            max =  max
+        )
 
         createOk(list.map{ thermalMonitorEntity -> thermalMonitorTranslator.translate(thermalMonitorEntity) })
     }
 
-    override fun resolveMonitorStatuses(): Uni<Response> {
-        TODO("Not yet implemented")
+    @WithSession
+    @WithTransaction
+    override fun resolveMonitorStatuses(): Uni<Response> = withCoroutineScope {
+        if (requestCronKey != cronKey) {
+            return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
+        }
+
+        thermalMonitorController.resolveMonitorStatuses()
+
+        createOk()
     }
 
     @RolesAllowed(MANAGER_ROLE)
@@ -75,6 +93,6 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
 
         val found = thermalMonitorController.find(thermalMonitorId) ?: return@withCoroutineScope createNotFound()
 
-        createOk(thermalMonitorTranslator.translate(thermalMonitorController.update(thermalMonitor, found, loggedUserId!!)))
+        createOk(thermalMonitorTranslator.translate(thermalMonitorController.updateFromRest(thermalMonitor, found, loggedUserId!!)))
     }
 }

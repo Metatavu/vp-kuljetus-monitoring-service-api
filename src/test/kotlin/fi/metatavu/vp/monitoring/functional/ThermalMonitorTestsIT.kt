@@ -111,20 +111,11 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             it.manager.thermalMonitors.create(thermalMonitor2)
         }
 
-        val monitors = it.manager.thermalMonitors.listThermalMonitors(
-            null,
-            null,
-            null,
-            null,
-            null
-        )
+        val monitors = it.manager.thermalMonitors.listThermalMonitors()
 
         assertEquals(15, monitors.size, "The listed amount of monitors is different from the amount of monitors created")
 
         val monitors2 = it.manager.thermalMonitors.listThermalMonitors(
-            null,
-            null,
-            null,
             first = 3,
             max = 1000
         )
@@ -132,22 +123,13 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         assertEquals(12, monitors2.size, "There should be 12 monitors that fit the list filters")
 
         val monitors3 = it.manager.thermalMonitors.listThermalMonitors(
-            null,
-            null,
-            null,
             first = 3,
             max = 10
         )
 
         assertEquals(10, monitors3.size, "There should be 10 monitors that fit the list filters")
 
-        val monitors4 = it.manager.thermalMonitors.listThermalMonitors(
-            ThermalMonitorStatus.PENDING,
-            null,
-            null,
-            null,
-            null
-        )
+        val monitors4 = it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.PENDING)
 
         assertEquals(5, monitors4.size, "There should be 5 monitors that fit the list filters")
 
@@ -189,22 +171,13 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         it.manager.thermalMonitors.create(thermalMonitor2)
         it.manager.thermalMonitors.create(thermalMonitor3)
 
-        val monitors1 = it.manager.thermalMonitors.listThermalMonitors(
-            null,
-            null,
-            time1.plusDays(1).toString(),
-            null,
-            null
-        )
+        val monitors1 = it.manager.thermalMonitors.listThermalMonitors(activeAfter = time1.plusDays(1).toString(),)
 
         assertEquals(2, monitors1.size, "There should be 2 monitors that fit the list filters")
 
         val monitors2 = it.manager.thermalMonitors.listThermalMonitors(
-            null,
-            time4.minusDays(1).toString(),
-            time1.plusDays(1).toString(),
-            null,
-            null
+            activeBefore = time4.minusDays(1).toString(),
+            activeAfter = time1.plusDays(1).toString(),
         )
 
         assertEquals(1, monitors2.size, "There should be 1 monitor that fits the list filters")
@@ -257,5 +230,68 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
         it.manager.thermalMonitors.assertUpdateFail(404, UUID.randomUUID(), thermalMonitor)
         it.user.thermalMonitors.assertUpdateFail(403, updatedData.id, updatedData)
+    }
+
+    @Test
+    fun testThermometerStatusResolve() = createTestBuilder().use {
+        val activeFromNow = OffsetDateTime.now()
+        val activeFromOneDay = OffsetDateTime.now().plusDays(1)
+        val activeTo10Days = OffsetDateTime.now().plusDays(10)
+
+        val thermalMonitor = ThermalMonitor(
+            name = "test",
+            status = ThermalMonitorStatus.PENDING,
+            thermometerIds = arrayOf(),
+            lowerThresholdTemperature = -50f,
+            upperThresholdTemperature = 50f,
+            activeFrom = activeFromNow.toString(),
+            activeTo = activeTo10Days.toString()
+        )
+
+        val thermalMonitor2 = ThermalMonitor(
+            name = "test",
+            status = ThermalMonitorStatus.PENDING,
+            thermometerIds = arrayOf(),
+            lowerThresholdTemperature = -50f,
+            upperThresholdTemperature = 50f,
+            activeFrom = activeFromOneDay.toString(),
+            activeTo = activeTo10Days.toString()
+        )
+
+        val monitorToActivate = it.manager.thermalMonitors.create(thermalMonitor)
+        it.manager.thermalMonitors.create(thermalMonitor2)
+
+        assertEquals(2, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.PENDING).size, "Both monitors should be PENDING at this point")
+        assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "No monitors should be ACTIVE at this point")
+
+        it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.PENDING).size, "Only one monitor should be PENDING at this point")
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "Only one monitor should be ACTIVE at this point")
+
+        assertEquals(ThermalMonitorStatus.ACTIVE, it.manager.thermalMonitors.findThermalMonitor(monitorToActivate.id!!).status, "Monitor ${monitorToActivate.id} should be ACTIVE at this point")
+
+        val activeFrom10DaysAgo = OffsetDateTime.now().minusDays(10)
+        val activeTo1DayAgo = OffsetDateTime.now().minusDays(1)
+        val thermalMonitor3 = ThermalMonitor(
+            name = "test",
+            status = ThermalMonitorStatus.ACTIVE,
+            thermometerIds = arrayOf(),
+            lowerThresholdTemperature = -50f,
+            upperThresholdTemperature = 50f,
+            activeFrom = activeFrom10DaysAgo.toString(),
+            activeTo = activeTo1DayAgo.toString()
+        )
+
+        val monitorToFinish = it.manager.thermalMonitors.create(thermalMonitor3)
+        assertEquals(2, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be two ACTIVE monitors")
+        assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.FINISHED).size, "No monitor should be FINISHED yet")
+
+        it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.FINISHED).size, "There should be only one FINISHED monitor at this point")
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be only one ACTIVE monitor at this point")
+
+        assertEquals(ThermalMonitorStatus.FINISHED, it.manager.thermalMonitors.findThermalMonitor(monitorToFinish.id!!).status, "Monitor ${monitorToFinish.id} should be FINISHED at this point")
     }
 }

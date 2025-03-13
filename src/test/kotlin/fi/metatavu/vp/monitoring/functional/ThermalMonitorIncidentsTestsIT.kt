@@ -23,7 +23,6 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
 
     @Test
     fun testCreateThermalMonitorIncident() = createTestBuilder().use {
-
         val thermometerId = UUID.randomUUID()
 
         val monitor = it.manager.thermalMonitors.create(

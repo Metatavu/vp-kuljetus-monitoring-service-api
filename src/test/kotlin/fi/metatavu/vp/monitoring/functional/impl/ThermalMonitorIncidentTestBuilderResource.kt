@@ -30,55 +30,6 @@ class ThermalMonitorIncidentTestBuilderResource(
     }
 
     /**
-     * Finds thermal monitor incident
-     *
-     * @param id id
-     * @return found thermal monitor incident
-     */
-    fun findThermalMonitorIncident(id: UUID): ThermalMonitorIncident {
-        return api.findThermalMonitorIncident(id)
-    }
-
-    /**
-     * Asserts that thermal monitor incident find fails with expected status
-     *
-     * @param expectedStatus expected status
-     * @param id id
-     */
-    fun assertFindIncidentFail(expectedStatus: Int, id: UUID) {
-        try {
-            findThermalMonitorIncident(id)
-            Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
-        } catch (ex: ClientException) {
-            assertClientExceptionStatus(expectedStatus, ex)
-        }
-    }
-
-    /**
-     * Deletes thermal monitor incident
-     *
-     * @param id
-     */
-    fun deleteThermalMonitorIncident(id: UUID) {
-        api.deleteThermalMonitorIncident(id)
-    }
-
-    /**
-     * Asserts that incident deletion fails with expected status
-     *
-     * @param id
-     * @param expectedStatus expected status
-     */
-    fun assertDeleteIncidentFail(expectedStatus: Int, id: UUID) {
-        try {
-            deleteThermalMonitorIncident(id)
-            Assert.fail(String.format("Expected delete to fail with status %d", expectedStatus))
-        } catch (ex: ClientException) {
-            assertClientExceptionStatus(expectedStatus, ex)
-        }
-    }
-
-    /**
      * List thermal monitor incidents
      *
      * @param monitorId

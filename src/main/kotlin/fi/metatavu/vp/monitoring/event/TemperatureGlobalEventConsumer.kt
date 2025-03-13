@@ -1,11 +1,14 @@
 package fi.metatavu.vp.monitoring.event
 
+import fi.metatavu.vp.api.model.ThermalMonitorIncidentStatus
+import fi.metatavu.vp.messaging.GlobalEventController
 import fi.metatavu.vp.messaging.WithCoroutineScope
 import fi.metatavu.vp.messaging.events.TemperatureGlobalEvent
 import fi.metatavu.vp.monitoring.incidents.IncidentController
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerEntity
+import io.quarkus.hibernate.reactive.panache.common.WithSession
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.quarkus.vertx.ConsumeEvent
 import io.smallrye.mutiny.Uni
@@ -29,6 +32,9 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
     @Inject
     lateinit var incidentController: IncidentController
 
+    @Inject
+    lateinit var globalEventController: GlobalEventController
+
     /**
      * Event bus consumer for temperature events
      *
@@ -47,10 +53,16 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
         )
 
         activeMonitorThermometers.forEach{
-            monitorThermometerController.updateThermometerLastMeasuredAt(it, temperatureEvent.timestamp)
+            val updated = monitorThermometerController.updateThermometerLastMeasuredAt(it, temperatureEvent.timestamp)
 
-            handleThresholds(temperatureEvent.temperature, it)
+            val triggeredIncident = incidentController.list(monitorThermometer = updated, incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED).firstOrNull()
+            val acknowledgedIncident = incidentController.list(monitorThermometer = updated, incidentStatus = ThermalMonitorIncidentStatus.ACKNOWLEDGED).firstOrNull()
+            if (triggeredIncident == null && acknowledgedIncident == null) {
+                handleThresholds(temperatureEvent.temperature, updated)
+            }
         }
+
+        globalEventController.publish(temperatureEvent)
 
         return@withCoroutineScope true
     }
@@ -67,9 +79,7 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
         val thresholdLow = thermalMonitor.thresholdLow
         val thresholdHigh = thermalMonitor.thresholdHigh
 
-        val triggerThresholdIncident = (thresholdHigh != null && thresholdHigh > temperature) || (thresholdLow != null && thresholdLow < temperature)
-
-
+        val triggerThresholdIncident = (thresholdHigh != null && thresholdHigh < temperature) || (thresholdLow != null && thresholdLow > temperature)
         if (!triggerThresholdIncident) {
             return
         }
@@ -79,7 +89,6 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
                 monitorThermometer = monitorThermometer,
                 temperature = temperature
         )
-
     }
 
 }

@@ -138,9 +138,6 @@
             <column name="resolvedat" type="datetime(6)"/>
             <column name="acknowledgedby" type="binary(16)"/>
             <column name="resolvedby" type="binary(16)"/>
-            <column name="creatorid" type="binary(16)">
-                <constraints nullable="false"/>
-            </column>
         </createTable>
         <addColumn tableName="monitorthermometer">
             <column name="archived" type="boolean"/>

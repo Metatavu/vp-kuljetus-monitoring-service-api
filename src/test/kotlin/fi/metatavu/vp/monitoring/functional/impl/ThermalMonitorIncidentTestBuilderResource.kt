@@ -21,9 +21,7 @@ class ThermalMonitorIncidentTestBuilderResource(
     apiClient: ApiClient
 ) : ApiTestBuilderResource<ThermalMonitorIncident, ApiClient>(testBuilder, apiClient) {
 
-    override fun clean(t: ThermalMonitorIncident) {
-        api.deleteThermalMonitorIncident(t.id!!)
-    }
+    override fun clean(t: ThermalMonitorIncident) {}
 
     override fun getApi(): ThermalMonitorIncidentsApi {
 
@@ -63,13 +61,6 @@ class ThermalMonitorIncidentTestBuilderResource(
      */
     fun deleteThermalMonitorIncident(id: UUID) {
         api.deleteThermalMonitorIncident(id)
-        removeCloseable { closable: Any ->
-            if (closable !is ThermalMonitorIncident) {
-                return@removeCloseable false
-            }
-
-            closable.id == id
-        }
     }
 
     /**
@@ -102,8 +93,8 @@ class ThermalMonitorIncidentTestBuilderResource(
         monitorId: UUID? = null,
         thermometerId: UUID? = null,
         status: ThermalMonitorIncidentStatus? = null,
-        triggeredBefore: OffsetDateTime? = null,
-        triggeredAfter: OffsetDateTime? = null,
+        triggeredBefore: String? = null,
+        triggeredAfter: String? = null,
         first: Int? = null,
         max: Int? = null
     ): Array<ThermalMonitorIncident> {
@@ -111,8 +102,8 @@ class ThermalMonitorIncidentTestBuilderResource(
             monitorId = monitorId,
             thermometerId = thermometerId,
             incidentStatus = status,
-            before = triggeredBefore.toString(),
-            after = triggeredAfter.toString(),
+            before = triggeredBefore,
+            after = triggeredAfter,
             first = first,
             max = max
         )

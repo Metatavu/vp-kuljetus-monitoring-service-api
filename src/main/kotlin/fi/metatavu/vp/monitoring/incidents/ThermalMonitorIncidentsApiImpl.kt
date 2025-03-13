@@ -29,13 +29,13 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
     @Inject
     lateinit var thermalMonitorIncidentTranslator: ThermalMonitorIncidentTranslator
 
-    @ConfigProperty(name = "vp.monitoring.incidents.delete.allow")
-    var deleteIncidents: String = "false"
+    @ConfigProperty(name = "vp.env")
+    var env: String? = null
 
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
     override fun deleteThermalMonitorIncident(thermalMonitorIncidentId: UUID): Uni<Response> = withCoroutineScope {
-        if (deleteIncidents != "true") {
+        if (env != "TEST") {
             return@withCoroutineScope createForbidden("Deleting incidents is not allowed")
         }
 
@@ -62,8 +62,9 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
         first: Int?,
         max: Int?
     ): Uni<Response> = withCoroutineScope {
+
         val monitor = if (monitorId != null) {
-            thermalMonitorController.find(monitorId) ?: return@withCoroutineScope createNotFound("Monitor $monitorId does not exist")
+            thermalMonitorController.find(monitorId) ?: return@withCoroutineScope createNotFound("Thermal monitor not found")
         } else {
             null
         }

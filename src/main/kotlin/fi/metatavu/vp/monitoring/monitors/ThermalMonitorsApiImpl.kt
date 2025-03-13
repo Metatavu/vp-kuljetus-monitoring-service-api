@@ -27,11 +27,8 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     @ConfigProperty(name = "vp.monitoring.cron.apiKey")
     lateinit var cronKey: String
 
-    @ConfigProperty(name = "vp.monitoring.thermometers.delete.allow")
-    var deleteThermometersPermanently: String = "false"
-
-    @ConfigProperty(name = "vp.monitoring.monitors.delete.allow")
-    var deleteMonitorsPermanently: String = "false"
+    @ConfigProperty(name = "vp.env")
+    var env: String? = null
 
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
@@ -47,7 +44,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
     override fun deleteThermalMonitor(thermalMonitorId: UUID): Uni<Response> = withCoroutineScope {
-        if (deleteMonitorsPermanently != "true") {
+        if (env != "TEST") {
             return@withCoroutineScope createForbidden("Deleting monitors is not allowed")
         }
 
@@ -103,7 +100,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
 
         val found = thermalMonitorController.find(thermalMonitorId) ?: return@withCoroutineScope createNotFound()
 
-        val updated = if (deleteThermometersPermanently == "true") {
+        val updated = if (env == "TEST") {
             thermalMonitorController.updateFromRest(
                 thermalMonitor = thermalMonitor,
                 thermalMonitorEntity = found,

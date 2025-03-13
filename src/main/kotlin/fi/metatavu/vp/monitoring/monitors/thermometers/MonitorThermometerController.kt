@@ -68,8 +68,8 @@ class MonitorThermometerController {
      *
      * @param monitorThermometerEntity
      */
-    suspend fun updateThermometerLastMeasuredAt(monitorThermometerEntity: MonitorThermometerEntity, lastMeasuredAt: Long) {
-        monitorThermometerRepository.updateThermometerLastMeasuredAt(
+    suspend fun updateThermometerLastMeasuredAt(monitorThermometerEntity: MonitorThermometerEntity, lastMeasuredAt: Long): MonitorThermometerEntity {
+        return monitorThermometerRepository.updateThermometerLastMeasuredAt(
             monitorThermometerEntity,
             lastMeasuredAt
         )

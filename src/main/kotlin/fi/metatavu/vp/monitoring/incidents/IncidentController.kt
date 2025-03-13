@@ -124,7 +124,7 @@ class IncidentController {
             thermalMonitor = thermalMonitor,
             monitorThermometer = monitorThermometer,
             thermometerId = thermometerId,
-            incidentStatus = incidentStatus.toString(),
+            incidentStatus = incidentStatus?.toString(),
             triggeredAfter = triggeredAfter,
             triggeredBefore = triggeredBefore,
             first = first,

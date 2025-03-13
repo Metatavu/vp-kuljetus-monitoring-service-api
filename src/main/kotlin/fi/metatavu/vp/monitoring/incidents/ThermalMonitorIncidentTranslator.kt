@@ -22,7 +22,7 @@ class ThermalMonitorIncidentTranslator: AbstractTranslator<ThermalMonitorInciden
             timestamp = entity.triggeredAt,
             resolvedAt = entity.resolvedAt,
             acknowledgeAt = entity.acknowledgedAt,
-            resovledBy = entity.resolvedBy,
+            resolvedBy = entity.resolvedBy,
             acknowledgedBy = entity.acknowledgedBy,
             pagedPolicies = emptyList()
         )

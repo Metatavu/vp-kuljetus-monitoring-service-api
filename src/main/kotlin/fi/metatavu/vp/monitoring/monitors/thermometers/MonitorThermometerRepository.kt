@@ -57,7 +57,7 @@ class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity,
         }
 
         if (onlyActive) {
-            addCondition(queryBuilder, "thermalMonitor.status = ACTIVE")
+            addCondition(queryBuilder, "thermalMonitor.status = 'ACTIVE'")
         }
 
         if (!includeArchived) {
@@ -73,9 +73,9 @@ class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity,
      *
      * @param monitorThermometerEntity
      */
-    suspend fun updateThermometerLastMeasuredAt(monitorThermometerEntity: MonitorThermometerEntity, lastMeasuredAt: Long) {
+    suspend fun updateThermometerLastMeasuredAt(monitorThermometerEntity: MonitorThermometerEntity, lastMeasuredAt: Long): MonitorThermometerEntity{
         monitorThermometerEntity.lastMeasuredAt = lastMeasuredAt
-        persistSuspending(monitorThermometerEntity)
+        return persistSuspending(monitorThermometerEntity)
     }
 
     /**

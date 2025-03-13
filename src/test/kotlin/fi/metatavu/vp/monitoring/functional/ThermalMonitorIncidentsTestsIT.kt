@@ -11,8 +11,6 @@ import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.testcontainers.shaded.org.awaitility.Awaitility
-import java.time.Duration
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -25,7 +23,6 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
 
     @Test
     fun testCreateThermalMonitorIncident() = createTestBuilder().use {
-        val messageConsumer = MessagingClient.setConsumer<TemperatureGlobalEvent>(RoutingKey.TEMPERATURE)
 
         val thermometerId = UUID.randomUUID()
 
@@ -49,8 +46,7 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
            routingKey = RoutingKey.TEMPERATURE
        )
 
-        messageConsumer.consumeMessages(1)
-
+        Thread.sleep(1000)
         assertEquals(0, it.manager.incidents.listThermalMonitorIncidents().size, "There should not be any incidents yet")
 
         val timeStamp = OffsetDateTime.now().toInstant().toEpochMilli()
@@ -63,7 +59,7 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
             routingKey = RoutingKey.TEMPERATURE
         )
 
-        messageConsumer.consumeMessages(1)
+        Thread.sleep(1000)
         assertEquals(1, it.manager.incidents.listThermalMonitorIncidents().size, "There should be exactly one incident")
 
         MessagingClient.publishMessage(
@@ -75,7 +71,7 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
             routingKey = RoutingKey.TEMPERATURE
         )
 
-        messageConsumer.consumeMessages(1)
+        Thread.sleep(1000)
 
         val incidents = it.manager.incidents.listThermalMonitorIncidents()
         assertEquals(1, incidents.size, "There should be exactly one incident")

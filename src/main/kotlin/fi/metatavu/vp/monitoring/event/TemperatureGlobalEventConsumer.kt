@@ -62,8 +62,6 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
             }
         }
 
-        globalEventController.publish(temperatureEvent)
-
         return@withCoroutineScope true
     }
 

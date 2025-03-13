@@ -7,6 +7,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Column
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
+import org.jetbrains.annotations.NotNull
 import java.util.*
 
 /**
@@ -26,6 +27,10 @@ class MonitorThermometerEntity: Metadata() {
 
     @Column
     var lastMeasuredAt: Long? = null
+
+    @Column
+    @NotNull
+    var archived: Boolean? = null
 
     override lateinit var creatorId: UUID
 

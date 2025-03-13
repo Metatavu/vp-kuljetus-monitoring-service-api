@@ -24,6 +24,7 @@ class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity,
         thermometer.id = UUID.randomUUID()
         thermometer.thermometerId = thermometerId
         thermometer.thermalMonitor = thermalMonitorEntity
+        thermometer.archived = false
         thermometer.creatorId = creatorId
         thermometer.lastModifierId = creatorId
         return persistSuspending(thermometer)
@@ -34,8 +35,14 @@ class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity,
      *
      *  @param thermalMonitorEntity
      *  @param thermometerId
+     *  @param onlyActive
      */
-    suspend fun listThermometers(thermalMonitorEntity: ThermalMonitorEntity?, thermometerId: UUID?): List<MonitorThermometerEntity> {
+    suspend fun listThermometers(
+        thermalMonitorEntity: ThermalMonitorEntity?,
+        thermometerId: UUID?,
+        onlyActive: Boolean,
+        includeArchived: Boolean
+        ): List<MonitorThermometerEntity> {
         val queryBuilder = StringBuilder()
         val parameters = Parameters()
 
@@ -49,6 +56,14 @@ class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity,
             parameters.and("thermometerId", thermometerId)
         }
 
+        if (onlyActive) {
+            addCondition(queryBuilder, "thermalMonitor.status = ACTIVE")
+        }
+
+        if (!includeArchived) {
+            addCondition(queryBuilder, "archived = false")
+        }
+
         return find(queryBuilder.toString(), parameters).list<MonitorThermometerEntity>().awaitSuspending()
     }
 
@@ -60,6 +75,22 @@ class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity,
      */
     suspend fun updateThermometerLastMeasuredAt(monitorThermometerEntity: MonitorThermometerEntity, lastMeasuredAt: Long) {
         monitorThermometerEntity.lastMeasuredAt = lastMeasuredAt
+        persistSuspending(monitorThermometerEntity)
+    }
+
+    /**
+     * Archives a thermometer
+     * This is done instead of deleting to keep the incident history
+     *
+     * @param monitorThermometerEntity
+     * @param lastModifierId
+     */
+    suspend fun archiveThermometer(
+        monitorThermometerEntity: MonitorThermometerEntity,
+        lastModifierId: UUID
+    ) {
+        monitorThermometerEntity.archived = true
+        monitorThermometerEntity.lastModifierId = lastModifierId
         persistSuspending(monitorThermometerEntity)
     }
 }

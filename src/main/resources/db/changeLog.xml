@@ -116,4 +116,38 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="incidents" author="Simeon Platonov">
+        <createTable tableName="thermalmonitorincident">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="thermalmonitor_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitor" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORINCIDENT_THERMALMONITOR"/>
+            </column>
+            <column name="monitorthermometer_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="monitorthermometer" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORINCIDENT_MONITORTHERMOMETER"/>
+            </column>
+            <column name="temperature" type="bigint"/>
+            <column name="status" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="triggeredat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="acknowledgedat" type="datetime(6)"/>
+            <column name="resolvedat" type="datetime(6)"/>
+            <column name="acknowledgedby" type="binary(16)"/>
+            <column name="resolvedby" type="binary(16)"/>
+            <column name="creatorid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addColumn tableName="monitorthermometer">
+            <column name="archived" type="boolean"/>
+        </addColumn>
+        <update tableName="monitorthermometer">
+            <column name="archived" value="false"/>
+        </update>
+        <addNotNullConstraint tableName="monitorthermometer" columnName="archived" columnDataType="boolean"/>
+    </changeSet>
 </databaseChangeLog>

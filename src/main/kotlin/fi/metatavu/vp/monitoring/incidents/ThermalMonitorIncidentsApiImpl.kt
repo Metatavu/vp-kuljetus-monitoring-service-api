@@ -58,6 +58,8 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
         ).map { thermalMonitorIncidentTranslator.translate(it) })
     }
 
+    @RolesAllowed(MANAGER_ROLE)
+    @WithTransaction
     override fun updateThermalMonitorIncident(
         thermalMonitorIncidentId: UUID,
         thermalMonitorIncident: ThermalMonitorIncident
@@ -69,11 +71,11 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
         val found = incidentController.find(thermalMonitorIncidentId) ?: return@withCoroutineScope createNotFound(NOT_FOUND_MESSAGE)
 
         if (found.status == ThermalMonitorIncidentStatus.RESOLVED.toString()) {
-            return@withCoroutineScope createForbidden("Updating resolved incidents is forbidden")
+            return@withCoroutineScope createBadRequest("Updating resolved incidents is forbidden")
         }
 
         if (thermalMonitorIncident.status == ThermalMonitorIncidentStatus.TRIGGERED) {
-            return@withCoroutineScope createForbidden("Updating status to TRIGGERED is forbidden")
+            return@withCoroutineScope createBadRequest("Updating status to TRIGGERED is forbidden")
         }
 
         if (thermalMonitorIncident.status == null) {

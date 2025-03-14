@@ -188,4 +188,145 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
         val incident2 = incidents.find { listIncident -> listIncident.temperature == -80f }
         assertNotNull(incident2, "Expected for incident listing to contain an incident with temperature -80f")
     }
+
+    @Test
+    fun testListIncidentsByPropertyFiltersIT() = createTestBuilder().use {
+        val thermometerId = UUID.randomUUID()
+        val thermometerId2 = UUID.randomUUID()
+
+        val monitor1 = it.manager.thermalMonitors.create(
+            ThermalMonitor(
+                name = "Monitor",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(thermometerId, thermometerId2),
+                lowerThresholdTemperature = -50f,
+                upperThresholdTemperature = 50f
+            )
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId,
+                temperature = 60f,
+                timestamp = OffsetDateTime.now().toInstant().toEpochMilli()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+        Thread.sleep(1000)
+
+        val time1 = OffsetDateTime.now()
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId2,
+                temperature = 60f,
+                timestamp = OffsetDateTime.now().toInstant().toEpochMilli()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+        Thread.sleep(1000)
+
+        assertEquals(
+            2,
+            it.manager.incidents.listThermalMonitorIncidents().size,
+            "There should be exactly two incidents"
+        )
+
+        assertEquals(
+            1,
+            it.manager.incidents.listThermalMonitorIncidents(thermometerId = thermometerId).size,
+            "There should be exactly one incident for thermometerId $thermometerId"
+        )
+
+        val thermometerId3 = UUID.randomUUID()
+        val thermometerId4 = UUID.randomUUID()
+
+        val monitor2 = it.manager.thermalMonitors.create(
+            ThermalMonitor(
+                name = "Monitor",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(thermometerId3, thermometerId4),
+                lowerThresholdTemperature = -50f,
+                upperThresholdTemperature = 50f
+            )
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId3,
+                temperature = 60f,
+                timestamp = OffsetDateTime.now().toInstant().toEpochMilli()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+        Thread.sleep(1000)
+
+        val time2 = OffsetDateTime.now()
+
+        assertEquals(
+            3,
+            it.manager.incidents.listThermalMonitorIncidents().size,
+            "There should be exactly three incidents"
+        )
+
+        assertEquals(
+            2,
+            it.manager.incidents.listThermalMonitorIncidents(monitorId = monitor1.id).size,
+            "There should be exactly two incidents for monitor ${monitor1.id}"
+        )
+
+        assertEquals(
+            1,
+            it.manager.incidents.listThermalMonitorIncidents(monitorId = monitor2.id).size,
+            "There should be exactly one incidents for monitor ${monitor2.id}"
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId4,
+                temperature = 60f,
+                timestamp = OffsetDateTime.now().toInstant().toEpochMilli()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+        Thread.sleep(1000)
+
+        assertEquals(
+            4,
+            it.manager.incidents.listThermalMonitorIncidents().size,
+            "There should be exactly four incidents"
+        )
+
+        assertEquals(
+            1,
+            it.manager.incidents.listThermalMonitorIncidents(triggeredBefore = time1.toString()).size,
+            "There should be exactly one incident before $time1"
+        )
+
+        assertEquals(
+            3,
+            it.manager.incidents.listThermalMonitorIncidents(triggeredAfter = time1.toString()).size,
+            "There should be exactly three incidents after $time1"
+        )
+
+        assertEquals(
+            2,
+            it.manager.incidents.listThermalMonitorIncidents(triggeredAfter = time1.toString(), triggeredBefore = time2.toString()).size,
+            "There should be exactly two incidents between $time1 and $time2"
+        )
+
+        // TODO : Add test for incidentStatus filter
+
+        it.user.incidents.assertListIncidentsFail(403)
+    }
+
+    @Test
+    fun testListIncidentsWithAmountAndIndexParameters() = createTestBuilder().use {
+
+    }
+
 }

@@ -4,6 +4,7 @@ import fi.metatavu.vp.api.model.ThermalMonitorIncident
 import fi.metatavu.vp.api.model.ThermalMonitorIncidentStatus
 import fi.metatavu.vp.api.spec.ThermalMonitorIncidentsApi
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorController
+import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
 import fi.metatavu.vp.monitoring.rest.AbstractApi
 import io.quarkus.hibernate.reactive.panache.common.WithSession
@@ -41,11 +42,7 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
         max: Int?
     ): Uni<Response> = withCoroutineScope {
 
-        val monitor = if (monitorId != null) {
-            thermalMonitorController.find(monitorId) ?: return@withCoroutineScope createNotFound("Thermal monitor not found")
-        } else {
-            null
-        }
+        val monitor = monitorId?.let { thermalMonitorController.find(monitorId) }
 
         createOk(incidentController.list(
             thermalMonitor = monitor,

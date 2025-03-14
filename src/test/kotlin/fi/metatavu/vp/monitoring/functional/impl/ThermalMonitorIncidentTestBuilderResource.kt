@@ -65,7 +65,15 @@ class ThermalMonitorIncidentTestBuilderResource(
      *
      * @param expectedStatus expected status
      */
-    fun assertListIncidentFail(expectedStatus: Int) {
+    fun assertListIncidentsFail(
+        expectedStatus: Int,
+        monitorId: UUID? = null,
+        thermometerId: UUID? = null,
+        status: ThermalMonitorIncidentStatus? = null,
+        triggeredBefore: String? = null,
+        triggeredAfter: String? = null,
+        first: Int? = null,
+        max: Int? = null) {
         try {
             listThermalMonitorIncidents()
             Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))

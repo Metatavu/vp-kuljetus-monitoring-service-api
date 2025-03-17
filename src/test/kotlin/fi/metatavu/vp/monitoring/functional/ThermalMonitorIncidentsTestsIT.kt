@@ -190,7 +190,7 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
     }
 
     @Test
-    fun testListIncidentsByPropertyFiltersIT() = createTestBuilder().use {
+    fun testListIncidentsIT() = createTestBuilder().use {
         val thermometerId = UUID.randomUUID()
         val thermometerId2 = UUID.randomUUID()
 
@@ -319,14 +319,54 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
             "There should be exactly two incidents between $time1 and $time2"
         )
 
-        // TODO : Add test for incidentStatus filter
+        val incident = it.manager.incidents.listThermalMonitorIncidents(triggeredBefore = time1.toString()).first()
+        it.manager.incidents.update(
+            id = incident.id!!,
+            thermalMonitorIncident = incident.copy(status = ThermalMonitorIncidentStatus.ACKNOWLEDGED)
+        )
+
+        assertEquals(
+            1,
+            it.manager.incidents.listThermalMonitorIncidents(status = ThermalMonitorIncidentStatus.ACKNOWLEDGED).size,
+            "There should be exactly one acknowledged incident"
+        )
+
+        it.manager.incidents.update(
+            id = incident.id,
+            thermalMonitorIncident = incident.copy(status = ThermalMonitorIncidentStatus.RESOLVED)
+        )
+
+        assertEquals(
+            1,
+            it.manager.incidents.listThermalMonitorIncidents(status = ThermalMonitorIncidentStatus.RESOLVED).size,
+            "There should be exactly one resolved incident"
+        )
+
+        assertEquals(
+            0,
+            it.manager.incidents.listThermalMonitorIncidents(status = ThermalMonitorIncidentStatus.ACKNOWLEDGED).size,
+            "There should be zero acknowledged incidents"
+        )
+
+        assertEquals(
+            3,
+            it.manager.incidents.listThermalMonitorIncidents(status = ThermalMonitorIncidentStatus.TRIGGERED).size,
+            "There should be three triggered incidents"
+        )
+
+        assertEquals(
+            3,
+            it.manager.incidents.listThermalMonitorIncidents(first = 1).size,
+            "There should be exactly three incidents when first = 1, max = null"
+        )
+
+        assertEquals(
+            2,
+            it.manager.incidents.listThermalMonitorIncidents(first = 1, max = 2).size,
+            "There should be exactly three incidents when first = 1, max = 2"
+        )
 
         it.user.incidents.assertListIncidentsFail(403)
     }
 
-    @Test
-    fun testListIncidentsWithAmountAndIndexParameters() = createTestBuilder().use {
-
-    }
-
-}
+}   

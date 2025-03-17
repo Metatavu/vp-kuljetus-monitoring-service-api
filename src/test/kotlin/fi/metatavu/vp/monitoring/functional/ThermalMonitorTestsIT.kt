@@ -188,7 +188,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         val thermometer1 = UUID.randomUUID()
         val thermometer2 = UUID.randomUUID()
         val activeFrom = OffsetDateTime.now()
-        val activeTo = OffsetDateTime.now().plusDays(10)
+        val activeTo = OffsetDateTime.now().plusHours(1)
 
         val thermalMonitor = ThermalMonitor(
             name = "test",
@@ -203,8 +203,8 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         val created = it.manager.thermalMonitors.create(thermalMonitor)
 
         val thermometer3 = UUID.randomUUID()
-        val activeFromNew = OffsetDateTime.now().plusDays(5)
-        val activeToNew = OffsetDateTime.now().plusDays(15)
+        val activeFromNew = OffsetDateTime.now().plusHours(1)
+        val activeToNew = OffsetDateTime.now().plusHours(2)
 
         val updatedData = created.copy(
             name = "updated",

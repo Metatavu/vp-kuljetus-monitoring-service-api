@@ -19,6 +19,7 @@ class DefaultTestProfile: QuarkusTestProfile {
         config["mp.messaging.incoming.vp-in.exchange.name"] = EXCHANGE_NAME
         config["mp.messaging.incoming.vp-in.routing-keys"] = "TEMPERATURE"
         config["vp.monitoring.cron.apiKey"] = CRON_API_KEY
+
         return config
     }
 

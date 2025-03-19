@@ -27,6 +27,9 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     @ConfigProperty(name = "vp.monitoring.cron.apiKey")
     lateinit var cronKey: String
 
+    @ConfigProperty(name = "vp.env")
+    var env: String? = null
+
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
     override fun createThermalMonitor(thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
@@ -41,6 +44,10 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
     override fun deleteThermalMonitor(thermalMonitorId: UUID): Uni<Response> = withCoroutineScope {
+        if (env != "TEST") {
+            return@withCoroutineScope createForbidden("Deleting monitors is not allowed")
+        }
+
         val found = thermalMonitorController.find(thermalMonitorId) ?: return@withCoroutineScope createNotFound()
         thermalMonitorController.delete(found)
 
@@ -93,6 +100,19 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
 
         val found = thermalMonitorController.find(thermalMonitorId) ?: return@withCoroutineScope createNotFound()
 
-        createOk(thermalMonitorTranslator.translate(thermalMonitorController.updateFromRest(thermalMonitor, found, loggedUserId!!)))
+        val updated = if (env == "TEST") {
+            thermalMonitorController.updateFromRest(
+                thermalMonitor = thermalMonitor,
+                thermalMonitorEntity = found,
+                modifier = loggedUserId!!,
+                deleteUnusedThermometersPermanently = true)
+        } else {
+            thermalMonitorController.updateFromRest(
+                thermalMonitor = thermalMonitor,
+                thermalMonitorEntity = found,
+                modifier = loggedUserId!!,
+                deleteUnusedThermometersPermanently = false)
+        }
+        createOk(thermalMonitorTranslator.translate(updated))
     }
 }

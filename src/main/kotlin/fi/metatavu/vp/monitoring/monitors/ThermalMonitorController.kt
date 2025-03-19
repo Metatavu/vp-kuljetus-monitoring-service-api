@@ -63,7 +63,12 @@ class ThermalMonitorController {
      * @param thermalMonitorEntity
      */
     suspend fun delete(thermalMonitorEntity: ThermalMonitorEntity) {
-        monitorThermometerController.listThermometers(thermalMonitorEntity = thermalMonitorEntity, thermometerId = null).forEach {
+        monitorThermometerController.listThermometers(
+            thermalMonitorEntity = thermalMonitorEntity,
+            thermometerId = null,
+            onlyActive = false,
+            includeArchived = true
+        ).forEach {
             monitorThermometerController.delete(it)
         }
 
@@ -106,13 +111,28 @@ class ThermalMonitorController {
      * @param thermalMonitor updated data
      * @param thermalMonitorEntity existing entity
      * @param modifier modifier
+     * @param deleteUnusedThermometersPermanently delete thermometers that are not in the updated list
      */
-    suspend fun updateFromRest(thermalMonitor: ThermalMonitor, thermalMonitorEntity: ThermalMonitorEntity, modifier: UUID): ThermalMonitorEntity {
-        val existingThermometers = monitorThermometerController.listThermometers(thermalMonitorEntity = thermalMonitorEntity, thermometerId = null)
+    suspend fun updateFromRest(
+        thermalMonitor: ThermalMonitor,
+        thermalMonitorEntity: ThermalMonitorEntity,
+        modifier: UUID,
+        deleteUnusedThermometersPermanently: Boolean = false): ThermalMonitorEntity {
+        val existingThermometers = monitorThermometerController.listThermometers(
+            thermalMonitorEntity = thermalMonitorEntity,
+            thermometerId = null,
+            onlyActive = false
+        )
 
         existingThermometers.forEach {
             if (!thermalMonitor.thermometerIds.contains(it.thermometerId)) {
-                monitorThermometerController.delete(it)
+
+                if (deleteUnusedThermometersPermanently) {
+                    monitorThermometerController.delete(it)
+                } else {
+                    monitorThermometerController.archiveThermometer(it, modifier)
+                }
+
             }
         }
 

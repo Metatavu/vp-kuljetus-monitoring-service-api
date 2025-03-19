@@ -21,7 +21,11 @@ class ThermalMonitorTranslator: AbstractTranslator<ThermalMonitorEntity, Thermal
         return ThermalMonitor(
             name = entity.name,
             status = ThermalMonitorStatus.valueOf(entity.status),
-            thermometerIds = monitorThermometerController.listThermometers(thermalMonitorEntity = entity, thermometerId = null).map { it.thermometerId },
+            thermometerIds = monitorThermometerController.listThermometers(
+                thermalMonitorEntity = entity,
+                thermometerId = null,
+                onlyActive = false
+            ).map { it.thermometerId },
             id = entity.id,
             lowerThresholdTemperature = entity.thresholdLow,
             upperThresholdTemperature = entity.thresholdHigh,

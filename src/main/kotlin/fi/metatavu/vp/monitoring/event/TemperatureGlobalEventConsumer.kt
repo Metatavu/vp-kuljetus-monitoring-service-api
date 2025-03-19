@@ -52,7 +52,7 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
             onlyActive = true
         )
 
-        activeMonitorThermometers.forEach{
+        activeMonitorThermometers.forEach {
             val updated = monitorThermometerController.updateThermometerLastMeasuredAt(it, temperatureEvent.timestamp)
 
             val triggeredIncident = incidentController.list(monitorThermometer = updated, incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED).firstOrNull()

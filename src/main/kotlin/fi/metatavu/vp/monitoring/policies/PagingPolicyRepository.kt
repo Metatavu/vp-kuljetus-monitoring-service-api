@@ -53,8 +53,8 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
      */
     suspend fun list(
         thermalMonitor: ThermalMonitorEntity,
-        first: Int,
-        max: Int
+        first: Int? = null,
+        max: Int? = null
     ): Pair<List<ThermalMonitorPagingPolicyEntity>, Long> {
         val queryBuilder = StringBuilder()
         val parameters = Parameters()

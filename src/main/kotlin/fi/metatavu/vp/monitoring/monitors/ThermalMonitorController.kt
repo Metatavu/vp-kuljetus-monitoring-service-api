@@ -2,6 +2,7 @@ package fi.metatavu.vp.monitoring.monitors
 
 import fi.metatavu.vp.api.model.ThermalMonitor
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
+import fi.metatavu.vp.monitoring.incidents.pagedpolicies.PagedPolicyRepository
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
 import fi.metatavu.vp.monitoring.policies.PagingPolicyController
 import jakarta.enterprise.context.ApplicationScoped
@@ -19,6 +20,9 @@ class ThermalMonitorController {
 
     @Inject
     lateinit var pagingPolicyController: PagingPolicyController
+
+    @Inject
+    lateinit var pagedPolicyRepository: PagedPolicyRepository
 
     /**
      * Create a thermal monitor to monitor for incidents
@@ -63,6 +67,8 @@ class ThermalMonitorController {
      * @param thermalMonitorEntity
      */
     suspend fun delete(thermalMonitorEntity: ThermalMonitorEntity) {
+        pagedPolicyRepository.deleteMonitorPagedPolicies(thermalMonitorEntity)
+
         monitorThermometerController.listThermometers(
             thermalMonitorEntity = thermalMonitorEntity,
             thermometerId = null,

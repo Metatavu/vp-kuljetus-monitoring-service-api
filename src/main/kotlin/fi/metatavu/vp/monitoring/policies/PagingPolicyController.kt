@@ -1,10 +1,13 @@
 package fi.metatavu.vp.monitoring.policies
 
 import fi.metatavu.vp.api.model.PagingPolicyType
+import fi.metatavu.vp.monitoring.incidents.ThermalMonitorIncidentEntity
+import fi.metatavu.vp.monitoring.incidents.pagedpolicies.PagedPolicyRepository
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactEntity
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import java.time.OffsetDateTime
 import java.util.*
 
 @ApplicationScoped
@@ -12,6 +15,9 @@ class PagingPolicyController {
 
     @Inject
     lateinit var pagingPolicyRepository: PagingPolicyRepository
+
+    @Inject
+    lateinit var pagedPolicyRepository: PagedPolicyRepository
 
     /**
      * Save a thermal monitor paging policy to the database
@@ -84,7 +90,11 @@ class PagingPolicyController {
      * @param first
      * @param max
      */
-    suspend fun list(thermalMonitor: ThermalMonitorEntity, first: Int, max: Int): List<ThermalMonitorPagingPolicyEntity> {
+    suspend fun list(
+        thermalMonitor: ThermalMonitorEntity,
+        first: Int? = null,
+        max: Int? = null
+    ): List<ThermalMonitorPagingPolicyEntity> {
         return pagingPolicyRepository.list(thermalMonitor = thermalMonitor, first = first, max = max).first
     }
 
@@ -114,5 +124,30 @@ class PagingPolicyController {
             pagingPolicyContact = pagingPolicyContact,
             modifierId = modifierId
         )
+    }
+
+    /**
+     * Trigger the next policy for a given incident if policy's time is due
+     *
+     * @param incident
+     */
+    suspend fun triggerNextPolicy(incident: ThermalMonitorIncidentEntity) {
+        val alreadyTriggeredPolicies = pagedPolicyRepository.listByIncident(incident)
+        val nextPolicy = pagingPolicyRepository
+            .list(thermalMonitor = incident.thermalMonitor)
+            .first
+            .get(alreadyTriggeredPolicies.size - 1)
+
+        val now = OffsetDateTime.now()
+        val trigger = if (alreadyTriggeredPolicies.isEmpty()) {
+            incident.triggeredAt.isBefore(now.minusSeconds(nextPolicy.escalationDelaySeconds!!.toLong()))
+        } else {
+            val previousPolicy = alreadyTriggeredPolicies.first()
+            previousPolicy.createdAt.isBefore(now.minusSeconds(nextPolicy.escalationDelaySeconds!!.toLong()))
+        }
+
+        if (trigger) {
+            pagedPolicyRepository.create(incident, nextPolicy)
+        }
     }
 }

@@ -62,6 +62,7 @@ class PagingPolicyController {
      * @param thermalMonitorPagingPolicyEntity
      */
     suspend fun delete(thermalMonitorPagingPolicyEntity: ThermalMonitorPagingPolicyEntity) {
+        pagedPolicyRepository.listByPolicy(policy = thermalMonitorPagingPolicyEntity).forEach { pagedPolicyRepository.deleteSuspending(it) }
         pagingPolicyRepository.deleteSuspending(thermalMonitorPagingPolicyEntity)
     }
 
@@ -133,12 +134,19 @@ class PagingPolicyController {
      */
     suspend fun triggerNextPolicy(incident: ThermalMonitorIncidentEntity) {
         val alreadyTriggeredPolicies = pagedPolicyRepository.listByIncident(incident)
-        val nextPolicy = pagingPolicyRepository
+
+        val policies = pagingPolicyRepository
             .list(thermalMonitor = incident.thermalMonitor)
             .first
-            .get(alreadyTriggeredPolicies.size - 1)
+
+        if (policies.size == alreadyTriggeredPolicies.size) {
+            return
+        }
+
+        val nextPolicy = policies[alreadyTriggeredPolicies.size]
 
         val now = OffsetDateTime.now()
+
         val trigger = if (alreadyTriggeredPolicies.isEmpty()) {
             incident.triggeredAt.isBefore(now.minusSeconds(nextPolicy.escalationDelaySeconds!!.toLong()))
         } else {

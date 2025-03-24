@@ -32,9 +32,6 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
     @Inject
     lateinit var incidentController: IncidentController
 
-    @Inject
-    lateinit var globalEventController: GlobalEventController
-
     /**
      * Event bus consumer for temperature events
      *

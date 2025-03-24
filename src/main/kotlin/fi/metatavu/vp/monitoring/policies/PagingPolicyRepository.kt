@@ -63,7 +63,7 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
         parameters.and("thermalMonitor", thermalMonitor)
 
         return applyFirstMaxToQuery(
-            find(queryBuilder.toString(), Sort.ascending("priority"), parameters),
+            find(queryBuilder.toString(), Sort.ascending("priority").and("escalationDelaySeconds"), parameters),
             firstIndex = first,
             maxResults = max
         )

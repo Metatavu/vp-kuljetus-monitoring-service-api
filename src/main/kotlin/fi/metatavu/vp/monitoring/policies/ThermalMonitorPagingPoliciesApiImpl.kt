@@ -107,7 +107,6 @@ class ThermalMonitorPagingPoliciesApiImpl: ThermalMonitorPagingPoliciesApi, Abst
         createOk(policies.map { pagingPolicyTranslator.translate(it) })
     }
 
-    @WithSession
     @WithTransaction
     override fun triggerPolicies(): Uni<Response> = withCoroutineScope {
         if (requestCronKey != cronKey) {

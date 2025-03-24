@@ -47,19 +47,17 @@ class PagedPolicyRepository: AbstractRepository<PagedPolicyEntity, UUID>() {
     }
 
     /**
-     * This is used in tests to delete monitor paged policies
+     * List paged policies that belong to a given policy
      *
-     * @param monitor
+     * @param policy
      */
-    suspend fun deleteMonitorPagedPolicies(monitor: ThermalMonitorEntity) {
+    suspend fun listByPolicy(policy: ThermalMonitorPagingPolicyEntity): List<PagedPolicyEntity> {
         val queryBuilder = StringBuilder()
         val parameters = Parameters()
 
-        addCondition(queryBuilder, "incident.thermalMonitor = :monitor")
-        parameters.and("monitor", monitor)
+        addCondition(queryBuilder, "policy = :policy")
+        parameters.and("policy", policy)
 
-        list(queryBuilder.toString(), parameters).awaitSuspending().forEach {
-            deleteSuspending(it)
-        }
+        return list(queryBuilder.toString(), Sort.descending("createdAt"), parameters).awaitSuspending()
     }
 }

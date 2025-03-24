@@ -23,7 +23,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         val thermometer1 = UUID.randomUUID()
         val thermometer2 = UUID.randomUUID()
         val activeFrom = OffsetDateTime.now()
-        val activeTo = OffsetDateTime.now().plusDays(10)
+        val activeTo = OffsetDateTime.now().plusHours(10)
 
         val thermalMonitor = ThermalMonitor(
             name = "test",
@@ -138,10 +138,10 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
     @Test
     fun testThermalMonitorListTimeFilters() = createTestBuilder().use {
-        val time1 = OffsetDateTime.now().plusDays(2)
-        val time2 = OffsetDateTime.now().plusDays(10)
-        val time3 = OffsetDateTime.now().plusDays(15)
-        val time4 = OffsetDateTime.now().plusDays(20)
+        val time1 = OffsetDateTime.now().plusHours(2)
+        val time2 = OffsetDateTime.now().plusHours(10)
+        val time3 = OffsetDateTime.now().plusHours(15)
+        val time4 = OffsetDateTime.now().plusHours(20)
 
         val thermalMonitor = ThermalMonitor(
             name = "test",
@@ -171,13 +171,13 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         it.manager.thermalMonitors.create(thermalMonitor2)
         it.manager.thermalMonitors.create(thermalMonitor3)
 
-        val monitors1 = it.manager.thermalMonitors.listThermalMonitors(activeAfter = time1.plusDays(1).toString(),)
+        val monitors1 = it.manager.thermalMonitors.listThermalMonitors(activeAfter = time1.plusHours(1).toString(),)
 
         assertEquals(2, monitors1.size, "There should be 2 monitors that fit the list filters")
 
         val monitors2 = it.manager.thermalMonitors.listThermalMonitors(
-            activeBefore = time4.minusDays(1).toString(),
-            activeAfter = time1.plusDays(1).toString(),
+            activeBefore = time4.minusHours(1).toString(),
+            activeAfter = time1.plusHours(1).toString(),
         )
 
         assertEquals(1, monitors2.size, "There should be 1 monitor that fits the list filters")
@@ -235,8 +235,8 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
     @Test
     fun testThermometerStatusResolve() = createTestBuilder().use {
         val activeFromNow = OffsetDateTime.now()
-        val activeFromOneDay = OffsetDateTime.now().plusDays(1)
-        val activeTo10Days = OffsetDateTime.now().plusDays(10)
+        val activeFromOneHour = OffsetDateTime.now().plusHours(1)
+        val activeTo10Hours = OffsetDateTime.now().plusHours(10)
 
         val thermalMonitor = ThermalMonitor(
             name = "test",
@@ -245,7 +245,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
             activeFrom = activeFromNow.toString(),
-            activeTo = activeTo10Days.toString()
+            activeTo = activeTo10Hours.toString()
         )
 
         val thermalMonitor2 = ThermalMonitor(
@@ -254,8 +254,8 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             thermometerIds = arrayOf(),
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
-            activeFrom = activeFromOneDay.toString(),
-            activeTo = activeTo10Days.toString()
+            activeFrom = activeFromOneHour.toString(),
+            activeTo = activeTo10Hours.toString()
         )
 
         val monitorToActivate = it.manager.thermalMonitors.create(thermalMonitor)
@@ -271,16 +271,16 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
         assertEquals(ThermalMonitorStatus.ACTIVE, it.manager.thermalMonitors.findThermalMonitor(monitorToActivate.id!!).status, "Monitor ${monitorToActivate.id} should be ACTIVE at this point")
 
-        val activeFrom10DaysAgo = OffsetDateTime.now().minusDays(10)
-        val activeTo1DayAgo = OffsetDateTime.now().minusDays(1)
+        val activeFrom10HoursAgo = OffsetDateTime.now().minusHours(10)
+        val activeTo1HourAgo = OffsetDateTime.now().minusHours(1)
         val thermalMonitor3 = ThermalMonitor(
             name = "test",
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
-            activeFrom = activeFrom10DaysAgo.toString(),
-            activeTo = activeTo1DayAgo.toString()
+            activeFrom = activeFrom10HoursAgo.toString(),
+            activeTo = activeTo1HourAgo.toString()
         )
 
         val monitorToFinish = it.manager.thermalMonitors.create(thermalMonitor3)

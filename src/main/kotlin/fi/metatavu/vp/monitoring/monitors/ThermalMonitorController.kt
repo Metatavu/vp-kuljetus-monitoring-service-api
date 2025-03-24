@@ -67,8 +67,6 @@ class ThermalMonitorController {
      * @param thermalMonitorEntity
      */
     suspend fun delete(thermalMonitorEntity: ThermalMonitorEntity) {
-        pagedPolicyRepository.deleteMonitorPagedPolicies(thermalMonitorEntity)
-
         monitorThermometerController.listThermometers(
             thermalMonitorEntity = thermalMonitorEntity,
             thermometerId = null,

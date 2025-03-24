@@ -1,0 +1,166 @@
+package fi.metatavu.vp.monitoring.functional
+
+import fi.metatavu.vp.messaging.RoutingKey
+import fi.metatavu.vp.messaging.client.MessagingClient
+import fi.metatavu.vp.messaging.events.TemperatureGlobalEvent
+import fi.metatavu.vp.monitoring.functional.settings.DefaultTestProfile
+import fi.metatavu.vp.test.client.models.*
+import io.quarkus.test.junit.QuarkusTest
+import io.quarkus.test.junit.TestProfile
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
+import org.testcontainers.shaded.org.awaitility.Awaitility
+import java.time.Duration
+import java.time.OffsetDateTime
+import java.util.*
+
+/**
+ * Tests for incident escalations
+ */
+@QuarkusTest
+@TestProfile(DefaultTestProfile::class)
+class EscalationTestsIT: AbstractFunctionalTest() {
+    @Test
+    fun testCreatePagedPolicy() = createTestBuilder().use {
+        val thermometerId = UUID.randomUUID()
+
+        val monitor = it.manager.thermalMonitors.create(
+            ThermalMonitor(
+                name = "Monitor",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(thermometerId),
+                lowerThresholdTemperature = -50f,
+                upperThresholdTemperature = 50f
+            )
+        )
+
+        val policyContact = it.manager.pagingPolicyContacts.create(
+            PagingPolicyContact(
+                name = "Name",
+                email = "test@example.com"
+            )
+        )
+
+        val policy = it.manager.thermalMonitorPagingPolicies.create(
+            thermalMonitorId = monitor.id!!,
+            ThermalMonitorPagingPolicy(
+                contactId = policyContact.id!!,
+                escalationDelaySeconds = 0,
+                priority = 1,
+                type = PagingPolicyType.EMAIL,
+                thermalMonitorId = monitor.id
+            )
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId,
+                temperature = 60f,
+                timestamp = OffsetDateTime.now().toInstant().toEpochMilli()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.incidents.listThermalMonitorIncidents().size == 1
+        }
+
+        assertEquals(
+            0,
+            it.manager.incidents.listThermalMonitorIncidents().first().pagedPolicies!!.size,
+            "No paged policies should be created before the cron endpoint is triggered")
+        it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+
+        val incident = it.manager.incidents.listThermalMonitorIncidents().first()
+
+        assertEquals(
+            1,
+            incident.pagedPolicies!!.size,
+            "There should be one paged policy after the cron endpoint is triggered"
+        )
+
+        val pagedPolicy = incident.pagedPolicies.first()
+        assertEquals(policy.id, pagedPolicy.policyId, "Paged policy policyId should match the created policy")
+        assertEquals(policyContact.id, pagedPolicy.contactId, "Paged policy contactId should match the created contact")
+        assertEquals(incident.id, pagedPolicy.incidentId, "Paged policy incidentId should match the created incident")
+        assertNotNull(pagedPolicy.time, "Paged policy should have a timestamp")
+    }
+
+    @Test
+    fun testEscalationDelay() = createTestBuilder().use {
+        val thermometerId = UUID.randomUUID()
+
+        val monitor = it.manager.thermalMonitors.create(
+            ThermalMonitor(
+                name = "Monitor",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(thermometerId),
+                lowerThresholdTemperature = -50f,
+                upperThresholdTemperature = 50f
+            )
+        )
+
+        val policyContact = it.manager.pagingPolicyContacts.create(
+            PagingPolicyContact(
+                name = "Name",
+                email = "test@example.com"
+            )
+        )
+
+        val policy = it.manager.thermalMonitorPagingPolicies.create(
+            thermalMonitorId = monitor.id!!,
+            ThermalMonitorPagingPolicy(
+                contactId = policyContact.id!!,
+                escalationDelaySeconds = 0,
+                priority = 1,
+                type = PagingPolicyType.EMAIL,
+                thermalMonitorId = monitor.id
+            )
+        )
+
+        val policy2 = it.manager.thermalMonitorPagingPolicies.create(
+            thermalMonitorId = monitor.id,
+            ThermalMonitorPagingPolicy(
+                contactId = policyContact.id,
+                escalationDelaySeconds = 10,
+                priority = 1,
+                type = PagingPolicyType.EMAIL,
+                thermalMonitorId = monitor.id
+            )
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId,
+                temperature = 60f,
+                timestamp = OffsetDateTime.now().toInstant().toEpochMilli()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
+        }
+
+        assertEquals(policy.id, it.manager.incidents.listThermalMonitorIncidents().first().pagedPolicies!!.first().policyId)
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 2
+        }
+
+        assertEquals(policy2.id, it.manager.incidents.listThermalMonitorIncidents().first().pagedPolicies!!.first().policyId)
+    }
+
+    @Test
+    fun testStopEscalation() = createTestBuilder().use {
+
+    }
+
+    @Test
+    fun testSendEmail() = createTestBuilder().use {
+
+    }
+}

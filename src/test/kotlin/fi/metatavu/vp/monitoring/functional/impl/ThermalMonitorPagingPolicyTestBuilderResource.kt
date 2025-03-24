@@ -16,6 +16,7 @@ import java.util.*
 class ThermalMonitorPagingPolicyTestBuilderResource(
     testBuilder: TestBuilder,
     private val accessTokenProvider: AccessTokenProvider?,
+    private val cronKey: String?,
     apiClient: ApiClient
 ) : ApiTestBuilderResource<ThermalMonitorPagingPolicy, ApiClient>(testBuilder, apiClient) {
 
@@ -24,6 +25,10 @@ class ThermalMonitorPagingPolicyTestBuilderResource(
     }
 
     override fun getApi(): ThermalMonitorPagingPoliciesApi {
+        if (cronKey != null) {
+            ApiClient.apiKey["X-CRON-Key"] = cronKey
+        }
+
         ApiClient.accessToken = accessTokenProvider?.accessToken
         return ThermalMonitorPagingPoliciesApi(ApiTestSettings.apiBasePath)
     }
@@ -163,5 +168,12 @@ class ThermalMonitorPagingPolicyTestBuilderResource(
         } catch (ex: ClientException) {
             assertClientExceptionStatus(expectedStatus, ex)
         }
+    }
+
+    /**
+     * Triggers policies that are due
+     */
+    fun triggerPolicies() {
+        api.triggerPolicies()
     }
 }

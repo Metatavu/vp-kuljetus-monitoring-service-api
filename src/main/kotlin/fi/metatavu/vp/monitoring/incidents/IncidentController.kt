@@ -1,6 +1,7 @@
 package fi.metatavu.vp.monitoring.incidents
 
 import fi.metatavu.vp.api.model.ThermalMonitorIncidentStatus
+import fi.metatavu.vp.monitoring.incidents.pagedpolicies.PagedPolicyRepository
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerEntity
 import jakarta.enterprise.context.ApplicationScoped
@@ -12,6 +13,9 @@ import java.util.*
 class IncidentController {
     @Inject
     lateinit var incidentRepository: IncidentRepository
+
+    @Inject
+    lateinit var pagedPolicyRepository: PagedPolicyRepository
 
     /**
      * This is used by the event controller to create incidents
@@ -49,6 +53,10 @@ class IncidentController {
      * @param incident
      */
     suspend fun delete(incident: ThermalMonitorIncidentEntity) {
+        pagedPolicyRepository.listByIncident(incident).forEach {
+            pagedPolicyRepository.deleteSuspending(it)
+        }
+
         incidentRepository.deleteSuspending(incident)
     }
 

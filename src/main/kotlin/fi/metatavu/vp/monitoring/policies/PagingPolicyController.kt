@@ -1,6 +1,7 @@
 package fi.metatavu.vp.monitoring.policies
 
 import fi.metatavu.vp.api.model.PagingPolicyType
+import fi.metatavu.vp.monitoring.email.EmailController
 import fi.metatavu.vp.monitoring.incidents.ThermalMonitorIncidentEntity
 import fi.metatavu.vp.monitoring.incidents.pagedpolicies.PagedPolicyRepository
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
@@ -18,6 +19,9 @@ class PagingPolicyController {
 
     @Inject
     lateinit var pagedPolicyRepository: PagedPolicyRepository
+
+    @Inject
+    lateinit var emailController: EmailController
 
     /**
      * Save a thermal monitor paging policy to the database
@@ -155,7 +159,51 @@ class PagingPolicyController {
         }
 
         if (trigger) {
+            when (PagingPolicyType.valueOf(nextPolicy.policyType)) {
+                PagingPolicyType.EMAIL -> {
+                    val receiverEmail = nextPolicy.pagingPolicyContact.email
+                    if (receiverEmail != null) {
+                        val subject = "Hälytys: ${incident.thermalMonitor.name}"
+                        val content = constructMessage(incident)
+
+                        emailController.sendEmail(
+                            to = receiverEmail,
+                            subject = subject,
+                            content = content
+                        )
+                    }
+
+                }
+            }
             pagedPolicyRepository.create(incident, nextPolicy)
         }
+    }
+
+    /**
+     * Construct a message based on the type of the incident
+     * This message will be sent to a policy contact
+     */
+    fun constructMessage(incident: ThermalMonitorIncidentEntity): String {
+        val temperature = incident.temperature
+        val thresholdLow = incident.thermalMonitor.thresholdLow
+        val thresholdHigh = incident.thermalMonitor.thresholdHigh
+
+        if (temperature == null) {
+            return "Vahti: ${incident.thermalMonitor.name} \n"
+                .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
+                .plus("Ongelma: lämpötila ei päivittynyt määräajassa")
+        } else if (thresholdLow != null && temperature < thresholdLow) {
+            return "Vahti: ${incident.thermalMonitor.name} \n"
+                .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
+                .plus("Ongelma: lämpötila on liian alhainen")
+                .plus("Lämpötila: $temperature")
+        } else if (thresholdHigh != null && temperature > thresholdHigh) {
+            return "Vahti: ${incident.thermalMonitor.name} \n"
+                .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
+                .plus("Ongelma: lämpötila on liian korkea")
+                .plus("Lämpötila: $temperature")
+        }
+
+        return "Tuntematon hälytys"
     }
 }

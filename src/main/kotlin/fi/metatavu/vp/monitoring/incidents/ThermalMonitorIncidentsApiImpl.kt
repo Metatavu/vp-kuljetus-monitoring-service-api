@@ -30,6 +30,18 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
     @Inject
     lateinit var thermalMonitorIncidentTranslator: ThermalMonitorIncidentTranslator
 
+    @ConfigProperty(name = "vp.monitoring.cron.apiKey")
+    lateinit var cronKey: String
+
+    @WithTransaction
+    override fun createLostSensorIncidents(): Uni<Response> = withCoroutineScope {
+        if (requestCronKey != cronKey) {
+            return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
+        }
+
+        createOk()
+    }
+
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
     override fun listThermalMonitorIncidents(

@@ -156,7 +156,74 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
     @Test
     fun testStopEscalation() = createTestBuilder().use {
+        val thermometerId = UUID.randomUUID()
 
+        val monitor = it.manager.thermalMonitors.create(
+            ThermalMonitor(
+                name = "Monitor",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(thermometerId),
+                lowerThresholdTemperature = -50f,
+                upperThresholdTemperature = 50f
+            )
+        )
+
+        val policyContact = it.manager.pagingPolicyContacts.create(
+            PagingPolicyContact(
+                name = "Name",
+                email = "test@example.com"
+            )
+        )
+
+        val policy = it.manager.thermalMonitorPagingPolicies.create(
+            thermalMonitorId = monitor.id!!,
+            ThermalMonitorPagingPolicy(
+                contactId = policyContact.id!!,
+                escalationDelaySeconds = 0,
+                priority = 1,
+                type = PagingPolicyType.EMAIL,
+                thermalMonitorId = monitor.id
+            )
+        )
+
+        it.manager.thermalMonitorPagingPolicies.create(
+            thermalMonitorId = monitor.id,
+            ThermalMonitorPagingPolicy(
+                contactId = policyContact.id,
+                escalationDelaySeconds = 5,
+                priority = 1,
+                type = PagingPolicyType.EMAIL,
+                thermalMonitorId = monitor.id
+            )
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId,
+                temperature = 60f,
+                timestamp = OffsetDateTime.now().toInstant().toEpochMilli()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
+        }
+
+        val incident = it.manager.incidents.listThermalMonitorIncidents().first()
+        it.manager.incidents.update(
+            id = incident.id!!,
+            thermalMonitorIncident = incident.copy(
+                status = ThermalMonitorIncidentStatus.ACKNOWLEDGED
+            )
+        )
+
+        Thread.sleep(5000)
+        it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+        val pagedPolicies = it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies
+        assertEquals(1, pagedPolicies!!.size)
+        assertEquals(policy.id!!, pagedPolicies.first().policyId)
     }
 
     @Test

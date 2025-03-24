@@ -4,7 +4,6 @@ import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerEntity
 import java.time.OffsetDateTime
 import java.util.*
-import fi.metatavu.vp.monitoring.persistence.Metadata
 import jakarta.persistence.*
 
 @Entity

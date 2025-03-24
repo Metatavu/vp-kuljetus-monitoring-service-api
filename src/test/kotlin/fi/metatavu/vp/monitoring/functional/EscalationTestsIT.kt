@@ -3,8 +3,12 @@ package fi.metatavu.vp.monitoring.functional
 import fi.metatavu.vp.messaging.RoutingKey
 import fi.metatavu.vp.messaging.client.MessagingClient
 import fi.metatavu.vp.messaging.events.TemperatureGlobalEvent
+import fi.metatavu.vp.monitoring.functional.resources.MailgunMocker
+import fi.metatavu.vp.monitoring.functional.resources.MailgunTestResource
+import fi.metatavu.vp.monitoring.functional.settings.ApiTestSettings
 import fi.metatavu.vp.monitoring.functional.settings.DefaultTestProfile
 import fi.metatavu.vp.test.client.models.*
+import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,6 +23,9 @@ import java.util.*
  * Tests for incident escalations
  */
 @QuarkusTest
+@QuarkusTestResource.List(
+    QuarkusTestResource(MailgunTestResource::class)
+)
 @TestProfile(DefaultTestProfile::class)
 class EscalationTestsIT: AbstractFunctionalTest() {
     @Test
@@ -144,14 +151,20 @@ class EscalationTestsIT: AbstractFunctionalTest() {
             it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
         }
 
-        assertEquals(policy.id, it.manager.incidents.listThermalMonitorIncidents().first().pagedPolicies!!.first().policyId)
+        assertEquals(
+            policy.id,
+            it.manager.incidents.listThermalMonitorIncidents().first().pagedPolicies!!.first().policyId,
+            "Triggered policy id should match the first policy")
 
         Awaitility.await().atMost(Duration.ofMinutes(2)).until {
             it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
             it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 2
         }
 
-        assertEquals(policy2.id, it.manager.incidents.listThermalMonitorIncidents().first().pagedPolicies!!.first().policyId)
+        assertEquals(
+            policy2.id,
+            it.manager.incidents.listThermalMonitorIncidents().first().pagedPolicies!!.first().policyId,
+            "At this point, the second created policy should be the first in the list")
     }
 
     @Test
@@ -222,12 +235,133 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         Thread.sleep(5000)
         it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
         val pagedPolicies = it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies
-        assertEquals(1, pagedPolicies!!.size)
-        assertEquals(policy.id!!, pagedPolicies.first().policyId)
+        assertEquals(1, pagedPolicies!!.size, "New policies should not be created after incident is acknowledged")
+        assertEquals(policy.id!!, pagedPolicies.first().policyId, "Triggered policy id should match the first policy")
     }
 
     @Test
-    fun testSendEmail() = createTestBuilder().use {
+    fun testSendThresholdHighIncidentEmail() = createTestBuilder().use {
+        val thermometerId = UUID.randomUUID()
 
+        val monitor = it.manager.thermalMonitors.create(
+            ThermalMonitor(
+                name = "Monitor 1",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(thermometerId),
+                lowerThresholdTemperature = -50f,
+                upperThresholdTemperature = 50f
+            )
+        )
+
+        val policyContact = it.manager.pagingPolicyContacts.create(
+            PagingPolicyContact(
+                name = "Name",
+                email = "test@example.com"
+            )
+        )
+
+        it.manager.thermalMonitorPagingPolicies.create(
+            thermalMonitorId = monitor.id!!,
+            ThermalMonitorPagingPolicy(
+                contactId = policyContact.id!!,
+                escalationDelaySeconds = 0,
+                priority = 1,
+                type = PagingPolicyType.EMAIL,
+                thermalMonitorId = monitor.id
+            )
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId,
+                temperature = 60f,
+                timestamp = OffsetDateTime.now().toInstant().toEpochMilli()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
+        }
+
+        val mailgunMocker = MailgunMocker()
+
+        val expectedContent = "Vahti: Monitor 1 \n"
+            .plus("Anturi: $thermometerId \n")
+            .plus("Ongelma: lämpötila on liian korkea")
+            .plus("Lämpötila: ${60f}")
+        val emailParameters = mailgunMocker.createParameterList(
+            fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
+            to = "test@example.com",
+            subject = "Hälytys: Monitor 1",
+            content = expectedContent
+        )
+
+        mailgunMocker.verifyMessageSent(emailParameters)
+    }
+
+    @Test
+    fun testSendThresholdLowIncidentEmail() = createTestBuilder().use {
+        val thermometerId = UUID.randomUUID()
+
+        val monitor = it.manager.thermalMonitors.create(
+            ThermalMonitor(
+                name = "Monitori",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(thermometerId),
+                lowerThresholdTemperature = -50f,
+                upperThresholdTemperature = 50f
+            )
+        )
+
+        val policyContact = it.manager.pagingPolicyContacts.create(
+            PagingPolicyContact(
+                name = "Nimi",
+                email = "testi@testi.fi"
+            )
+        )
+
+        it.manager.thermalMonitorPagingPolicies.create(
+            thermalMonitorId = monitor.id!!,
+            ThermalMonitorPagingPolicy(
+                contactId = policyContact.id!!,
+                escalationDelaySeconds = 0,
+                priority = 1,
+                type = PagingPolicyType.EMAIL,
+                thermalMonitorId = monitor.id
+            )
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId,
+                temperature = -100f,
+                timestamp = OffsetDateTime.now().toInstant().toEpochMilli()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
+        }
+
+        val mailgunMocker = MailgunMocker()
+
+        val expectedContent = "Vahti: Monitori \n"
+            .plus("Anturi: $thermometerId \n")
+            .plus("Ongelma: lämpötila on liian alhainen")
+            .plus("Lämpötila: ${-100f}")
+        val emailParameters = mailgunMocker.createParameterList(
+            fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
+            to = "testi@testi.fi",
+            subject = "Hälytys: Monitori",
+            content = expectedContent
+        )
+
+        mailgunMocker.verifyMessageSent(emailParameters)
     }
 }

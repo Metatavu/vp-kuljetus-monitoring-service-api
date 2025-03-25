@@ -195,7 +195,7 @@ class PagingPolicyController {
         if (temperature == null) {
             return "Vahti: ${incident.thermalMonitor.name} \n"
                 .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
-                .plus("Ongelma: lämpötila ei päivittynyt määräajassa")
+                .plus("Ongelma: lämpötila ei päivittynyt määräajassa \n")
                 .plus("Järjestelmälle asetettu määräaika lämpötilan päivittymiselle on $sensorLostDelayMinutes minuuttia")
         } else if (thresholdLow != null && temperature < thresholdLow) {
             return "Vahti: ${incident.thermalMonitor.name} \n"

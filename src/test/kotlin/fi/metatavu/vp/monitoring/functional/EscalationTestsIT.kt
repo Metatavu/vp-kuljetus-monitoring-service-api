@@ -417,7 +417,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
         val expectedContent = "Vahti: Monitori \n"
             .plus("Anturi: $thermometerId \n")
-            .plus("Ongelma: lämpötila ei päivittynyt määräajassa")
+            .plus("Ongelma: lämpötila ei päivittynyt määräajassa \n")
             .plus("Järjestelmälle asetettu määräaika lämpötilan päivittymiselle on 5 minuuttia")
         val emailParameters = mailgunMocker.createParameterList(
             fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,

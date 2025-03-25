@@ -39,6 +39,8 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
             return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
         }
 
+        incidentController.createLostSensorIncidents()
+
         createOk()
     }
 

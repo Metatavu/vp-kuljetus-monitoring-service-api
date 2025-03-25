@@ -4,6 +4,7 @@ import fi.metatavu.vp.monitoring.incidents.IncidentController
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import java.time.OffsetDateTime
 import java.util.*
 
 @ApplicationScoped
@@ -35,17 +36,20 @@ class MonitorThermometerController {
      *  @param thermalMonitorEntity
      *  @param thermometerId
      *  @param onlyActive
+     *  @param includeArchived
      */
     suspend fun listThermometers(
         thermalMonitorEntity: ThermalMonitorEntity? = null,
         thermometerId: UUID? = null,
         onlyActive: Boolean = false,
-        includeArchived: Boolean = false): List<MonitorThermometerEntity> {
+        includeArchived: Boolean = false,
+        lastMeasuredBefore: OffsetDateTime? = null): List<MonitorThermometerEntity> {
         return monitorThermometerRepository.listThermometers(
             thermalMonitorEntity = thermalMonitorEntity,
             thermometerId = thermometerId,
             onlyActive = onlyActive,
-            includeArchived = includeArchived
+            includeArchived = includeArchived,
+            lastMeasuredBefore = lastMeasuredBefore?.toEpochSecond()
         )
     }
 

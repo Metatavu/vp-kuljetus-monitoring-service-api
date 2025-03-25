@@ -29,7 +29,7 @@ class TestBuilderAuthentication(
     val thermalMonitors = ThermalMonitorTestBuilderResource(testBuilder, accessTokenProvider, cronKey, createClient(accessTokenProvider))
     val pagingPolicyContacts = PagingPolicyContactTestBuilderResource(testBuilder, accessTokenProvider, createClient(accessTokenProvider))
     val thermalMonitorPagingPolicies = ThermalMonitorPagingPolicyTestBuilderResource(testBuilder, accessTokenProvider, cronKey, createClient(accessTokenProvider))
-    val incidents = ThermalMonitorIncidentTestBuilderResource(testBuilder, accessTokenProvider, createClient(accessTokenProvider))
+    val incidents = ThermalMonitorIncidentTestBuilderResource(testBuilder, accessTokenProvider, cronKey, createClient(accessTokenProvider))
 
     override fun createClient(authProvider: AccessTokenProvider): ApiClient {
         val result = ApiClient(ApiTestSettings.apiBasePath)

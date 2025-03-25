@@ -8,6 +8,7 @@ import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactEntity
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -22,6 +23,9 @@ class PagingPolicyController {
 
     @Inject
     lateinit var emailController: EmailController
+
+    @ConfigProperty(name = "vp.monitoring.incidents.sensorlost.delayminutes")
+    lateinit var sensorLostDelayMinutes: String
 
     /**
      * Save a thermal monitor paging policy to the database
@@ -192,6 +196,7 @@ class PagingPolicyController {
             return "Vahti: ${incident.thermalMonitor.name} \n"
                 .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
                 .plus("Ongelma: lämpötila ei päivittynyt määräajassa")
+                .plus("Järjestelmälle asetettu määräaika lämpötilan päivittymiselle on $sensorLostDelayMinutes minuuttia")
         } else if (thresholdLow != null && temperature < thresholdLow) {
             return "Vahti: ${incident.thermalMonitor.name} \n"
                 .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")

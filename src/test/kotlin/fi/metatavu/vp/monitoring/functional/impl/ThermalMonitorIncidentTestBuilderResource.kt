@@ -9,7 +9,6 @@ import fi.metatavu.vp.test.client.infrastructure.ClientException
 import fi.metatavu.vp.test.client.models.ThermalMonitorIncident
 import fi.metatavu.vp.test.client.models.ThermalMonitorIncidentStatus
 import org.junit.Assert
-import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -18,12 +17,16 @@ import java.util.*
 class ThermalMonitorIncidentTestBuilderResource(
     testBuilder: TestBuilder,
     private val accessTokenProvider: AccessTokenProvider?,
+    private val cronKey: String?,
     apiClient: ApiClient
 ) : ApiTestBuilderResource<ThermalMonitorIncident, ApiClient>(testBuilder, apiClient) {
 
     override fun clean(t: ThermalMonitorIncident) {}
 
     override fun getApi(): ThermalMonitorIncidentsApi {
+        if (cronKey != null) {
+            ApiClient.apiKey["X-CRON-Key"] = cronKey
+        }
 
         ApiClient.accessToken = accessTokenProvider?.accessToken
         return ThermalMonitorIncidentsApi(ApiTestSettings.apiBasePath)
@@ -66,14 +69,8 @@ class ThermalMonitorIncidentTestBuilderResource(
      * @param expectedStatus expected status
      */
     fun assertListIncidentsFail(
-        expectedStatus: Int,
-        monitorId: UUID? = null,
-        thermometerId: UUID? = null,
-        status: ThermalMonitorIncidentStatus? = null,
-        triggeredBefore: String? = null,
-        triggeredAfter: String? = null,
-        first: Int? = null,
-        max: Int? = null) {
+        expectedStatus: Int
+    ) {
         try {
             listThermalMonitorIncidents()
             Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
@@ -106,5 +103,12 @@ class ThermalMonitorIncidentTestBuilderResource(
         } catch (ex: ClientException) {
             assertClientExceptionStatus(expectedStatus, ex)
         }
+    }
+
+    /**
+     * Trigger incidents for lost sensors
+     */
+    fun createSensorLostIncidents() {
+        return api.createLostSensorIncidents()
     }
 }

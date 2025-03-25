@@ -364,4 +364,68 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
         mailgunMocker.verifyMessageSent(emailParameters)
     }
+
+    @Test
+    fun testSendSensorLostIncidentEmail() = createTestBuilder().use {
+        val thermometerId = UUID.randomUUID()
+
+        val monitor = it.manager.thermalMonitors.create(
+            ThermalMonitor(
+                name = "Monitori",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(thermometerId),
+                lowerThresholdTemperature = -50f,
+                upperThresholdTemperature = 50f
+            )
+        )
+
+        val policyContact = it.manager.pagingPolicyContacts.create(
+            PagingPolicyContact(
+                name = "Nimi",
+                email = "testi@testi.fi"
+            )
+        )
+
+        it.manager.thermalMonitorPagingPolicies.create(
+            thermalMonitorId = monitor.id!!,
+            ThermalMonitorPagingPolicy(
+                contactId = policyContact.id!!,
+                escalationDelaySeconds = 0,
+                priority = 1,
+                type = PagingPolicyType.EMAIL,
+                thermalMonitorId = monitor.id
+            )
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId,
+                temperature = 30f,
+                timestamp = OffsetDateTime.now().minusMinutes(10).toEpochSecond()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.setCronKey().incidents.createSensorLostIncidents()
+            it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
+        }
+
+        val mailgunMocker = MailgunMocker()
+
+        val expectedContent = "Vahti: Monitori \n"
+            .plus("Anturi: $thermometerId \n")
+            .plus("Ongelma: lämpötila ei päivittynyt määräajassa")
+            .plus("Järjestelmälle asetettu määräaika lämpötilan päivittymiselle on 5 minuuttia")
+        val emailParameters = mailgunMocker.createParameterList(
+            fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
+            to = "testi@testi.fi",
+            subject = "Hälytys: Monitori",
+            content = expectedContent
+        )
+
+        mailgunMocker.verifyMessageSent(emailParameters)
+    }
 }

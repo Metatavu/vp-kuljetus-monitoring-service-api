@@ -31,7 +31,7 @@ class PagingPolicyContactApiImpl : PagingPolicyContactsApi, AbstractApi() {
 
         val contactEntity = pagingPolicyContactController.create(
             name = pagingPolicyContact.name,
-            email = pagingPolicyContact.name,
+            email = pagingPolicyContact.email,
             creatorId = loggedUserId!!
         )
 

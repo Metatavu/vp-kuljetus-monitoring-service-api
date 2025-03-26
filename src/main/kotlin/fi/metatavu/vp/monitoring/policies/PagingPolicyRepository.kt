@@ -53,8 +53,8 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
      */
     suspend fun list(
         thermalMonitor: ThermalMonitorEntity,
-        first: Int,
-        max: Int
+        first: Int? = null,
+        max: Int? = null
     ): Pair<List<ThermalMonitorPagingPolicyEntity>, Long> {
         val queryBuilder = StringBuilder()
         val parameters = Parameters()
@@ -63,7 +63,14 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
         parameters.and("thermalMonitor", thermalMonitor)
 
         return applyFirstMaxToQuery(
-            find(queryBuilder.toString(), Sort.ascending("priority"), parameters),
+            find(
+                queryBuilder.toString(),
+                /**
+                 * This sorting is critical because the policies must be triggered in the correct order during incidents
+                 */
+                Sort.ascending("priority").and("escalationDelaySeconds"),
+                parameters
+            ),
             firstIndex = first,
             maxResults = max
         )

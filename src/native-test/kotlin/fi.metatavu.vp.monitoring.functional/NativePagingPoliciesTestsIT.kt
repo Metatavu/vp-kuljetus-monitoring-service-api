@@ -1,6 +1,8 @@
 package fi.metatavu.vp.monitoring.functional
 
+import fi.metatavu.vp.monitoring.functional.resources.MailgunTestResource
 import fi.metatavu.vp.monitoring.functional.settings.DefaultTestProfile
+import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusIntegrationTest
 import io.quarkus.test.junit.TestProfile
 
@@ -8,5 +10,8 @@ import io.quarkus.test.junit.TestProfile
  * Native tests for paging policies API
  */
 @QuarkusIntegrationTest
+@QuarkusTestResource.List(
+    QuarkusTestResource(MailgunTestResource::class)
+)
 @TestProfile(DefaultTestProfile::class)
 class NativePagingPoliciesTestsIT: ThermalMonitorPagingPoliciesTestsIT()

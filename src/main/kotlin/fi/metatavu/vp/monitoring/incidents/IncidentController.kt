@@ -1,10 +1,13 @@
 package fi.metatavu.vp.monitoring.incidents
 
 import fi.metatavu.vp.api.model.ThermalMonitorIncidentStatus
+import fi.metatavu.vp.monitoring.incidents.pagedpolicies.PagedPolicyRepository
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
+import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerEntity
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -12,6 +15,15 @@ import java.util.*
 class IncidentController {
     @Inject
     lateinit var incidentRepository: IncidentRepository
+
+    @Inject
+    lateinit var pagedPolicyRepository: PagedPolicyRepository
+
+    @Inject
+    lateinit var monitorThermometerController: MonitorThermometerController
+
+    @ConfigProperty(name = "vp.monitoring.incidents.sensorlost.delayminutes")
+    lateinit var sensorLostDelayMinutes: String
 
     /**
      * This is used by the event controller to create incidents
@@ -49,6 +61,10 @@ class IncidentController {
      * @param incident
      */
     suspend fun delete(incident: ThermalMonitorIncidentEntity) {
+        pagedPolicyRepository.listByIncident(incident).forEach {
+            pagedPolicyRepository.deleteSuspending(it)
+        }
+
         incidentRepository.deleteSuspending(incident)
     }
 
@@ -130,5 +146,24 @@ class IncidentController {
             first = first,
             max = max
         ).first
+    }
+
+    /**
+     * Creates incidents for thermometers that have been silent for more than allowed time.
+     * The threshold is defined by an environment variable that is read to the sensorLostDelayMinutes variable.
+     */
+    suspend fun createLostSensorIncidents() {
+        val lostThermometers = monitorThermometerController.listThermometers(
+            onlyActive = true,
+            lastMeasuredBefore = OffsetDateTime.now().minusMinutes(sensorLostDelayMinutes.toLong())
+        )
+
+        lostThermometers.forEach {
+            val triggeredIncident = list(monitorThermometer = it, incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED).firstOrNull()
+            val acknowledgedIncident = list(monitorThermometer = it, incidentStatus = ThermalMonitorIncidentStatus.ACKNOWLEDGED).firstOrNull()
+            if (triggeredIncident == null && acknowledgedIncident == null) {
+                create(it, it.thermalMonitor, null)
+            }
+        }
     }
 }

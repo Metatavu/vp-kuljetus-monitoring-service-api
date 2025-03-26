@@ -9,9 +9,10 @@ import fi.metatavu.vp.test.client.models.ThermalMonitorIncidentStatus
 import fi.metatavu.vp.test.client.models.ThermalMonitorStatus
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.testcontainers.shaded.org.awaitility.Awaitility
+import java.time.Duration
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -369,4 +370,92 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
         it.user.incidents.assertListIncidentsFail(403)
     }
 
+    @Test
+    fun sensorLostIncident() = createTestBuilder().use {
+        val thermometerId = UUID.randomUUID()
+        val thermometerId2 = UUID.randomUUID()
+
+        it.manager.thermalMonitors.create(
+            ThermalMonitor(
+                name = "Monitor",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(thermometerId, thermometerId2),
+                lowerThresholdTemperature = -50f,
+                upperThresholdTemperature = 50f
+            )
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId,
+                temperature = 60f,
+                timestamp = OffsetDateTime.now().toEpochSecond()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.incidents.listThermalMonitorIncidents().size == 1
+        }
+
+        it.setCronKey().incidents.createSensorLostIncidents()
+
+        val incidents1 = it.manager.incidents.listThermalMonitorIncidents()
+        assertEquals(
+            1,
+            incidents1.size,
+            "There should be only one incident at this point"
+        )
+
+        assertEquals(
+            60f,
+            incidents1.first().temperature,
+            "Incident temperature should be 60f"
+        )
+
+        assertEquals(
+            thermometerId,
+            incidents1.first().thermometerId,
+            "Incident thermometerId should be the thermometer that received a temperature event"
+        )
+        it.manager.incidents.update(
+            id = incidents1.first().id!!,
+            thermalMonitorIncident = incidents1.first().copy(status = ThermalMonitorIncidentStatus.ACKNOWLEDGED)
+        )
+
+        MessagingClient.publishMessage(
+            TemperatureGlobalEvent(
+                thermometerId = thermometerId2,
+                temperature = 30f,
+                timestamp = OffsetDateTime.now().minusMinutes(10).toEpochSecond()
+            ),
+            routingKey = RoutingKey.TEMPERATURE
+        )
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.setCronKey().incidents.createSensorLostIncidents()
+            it.manager.incidents.listThermalMonitorIncidents().size == 2
+        }
+
+        val incidents2 = it.manager.incidents.listThermalMonitorIncidents(
+            status = ThermalMonitorIncidentStatus.TRIGGERED
+        )
+
+        assertEquals(
+            1,
+            incidents2.size,
+            "There should be only one triggered incident at this point"
+        )
+
+        assertNull(
+            incidents2.first().temperature,
+            "Incident temperature should be null when the incident reason is that thermometer has been silent for too long"
+        )
+
+        assertEquals(
+            thermometerId2,
+            incidents2.first().thermometerId,
+            "Incident thermometerId should be the second thermometer"
+        )
+    }
 }   

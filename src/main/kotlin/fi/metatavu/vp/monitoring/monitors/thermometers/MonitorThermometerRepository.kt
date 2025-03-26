@@ -36,12 +36,14 @@ class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity,
      *  @param thermalMonitorEntity
      *  @param thermometerId
      *  @param onlyActive
+     *  @param lastMeasuredBefore
      */
     suspend fun listThermometers(
         thermalMonitorEntity: ThermalMonitorEntity?,
         thermometerId: UUID?,
         onlyActive: Boolean,
-        includeArchived: Boolean
+        includeArchived: Boolean,
+        lastMeasuredBefore: Long?
         ): List<MonitorThermometerEntity> {
         val queryBuilder = StringBuilder()
         val parameters = Parameters()
@@ -62,6 +64,11 @@ class MonitorThermometerRepository: AbstractRepository<MonitorThermometerEntity,
 
         if (!includeArchived) {
             addCondition(queryBuilder, "archived = false")
+        }
+
+        if (lastMeasuredBefore != null) {
+            addCondition(queryBuilder, "lastMeasuredAt < :lastMeasuredBefore")
+            parameters.and("lastMeasuredBefore", lastMeasuredBefore)
         }
 
         return find(queryBuilder.toString(), parameters).list<MonitorThermometerEntity>().awaitSuspending()

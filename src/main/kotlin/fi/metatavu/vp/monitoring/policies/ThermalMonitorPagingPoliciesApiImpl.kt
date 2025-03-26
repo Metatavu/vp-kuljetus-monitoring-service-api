@@ -1,7 +1,9 @@
 package fi.metatavu.vp.monitoring.policies
 
+import fi.metatavu.vp.api.model.ThermalMonitorIncidentStatus
 import fi.metatavu.vp.api.model.ThermalMonitorPagingPolicy
 import fi.metatavu.vp.api.spec.ThermalMonitorPagingPoliciesApi
+import fi.metatavu.vp.monitoring.incidents.IncidentController
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorController
 import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactController
 import fi.metatavu.vp.monitoring.rest.AbstractApi
@@ -12,6 +14,7 @@ import jakarta.annotation.security.RolesAllowed
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
 import jakarta.ws.rs.core.Response
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.util.*
 
 @RequestScoped
@@ -28,6 +31,12 @@ class ThermalMonitorPagingPoliciesApiImpl: ThermalMonitorPagingPoliciesApi, Abst
 
     @Inject
     lateinit var pagingPolicyContactController: PagingPolicyContactController
+
+    @Inject
+    lateinit var incidentController: IncidentController
+
+    @ConfigProperty(name = "vp.monitoring.cron.apiKey")
+    lateinit var cronKey: String
 
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
@@ -96,6 +105,21 @@ class ThermalMonitorPagingPoliciesApiImpl: ThermalMonitorPagingPoliciesApi, Abst
         )
 
         createOk(policies.map { pagingPolicyTranslator.translate(it) })
+    }
+
+    @WithTransaction
+    override fun triggerPolicies(): Uni<Response> = withCoroutineScope {
+        if (requestCronKey != cronKey) {
+            return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
+        }
+
+        val triggeredIncident = incidentController.list(
+            incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED
+        )
+
+        triggeredIncident.forEach { pagingPolicyController.triggerNextPolicy(it) }
+
+        createOk()
     }
 
     @RolesAllowed(MANAGER_ROLE)

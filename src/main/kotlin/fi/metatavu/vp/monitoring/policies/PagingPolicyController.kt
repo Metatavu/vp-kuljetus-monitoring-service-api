@@ -1,10 +1,15 @@
 package fi.metatavu.vp.monitoring.policies
 
 import fi.metatavu.vp.api.model.PagingPolicyType
+import fi.metatavu.vp.monitoring.email.EmailController
+import fi.metatavu.vp.monitoring.incidents.ThermalMonitorIncidentEntity
+import fi.metatavu.vp.monitoring.incidents.pagedpolicies.PagedPolicyRepository
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactEntity
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import org.eclipse.microprofile.config.inject.ConfigProperty
+import java.time.OffsetDateTime
 import java.util.*
 
 @ApplicationScoped
@@ -12,6 +17,15 @@ class PagingPolicyController {
 
     @Inject
     lateinit var pagingPolicyRepository: PagingPolicyRepository
+
+    @Inject
+    lateinit var pagedPolicyRepository: PagedPolicyRepository
+
+    @Inject
+    lateinit var emailController: EmailController
+
+    @ConfigProperty(name = "vp.monitoring.incidents.sensorlost.delayminutes")
+    lateinit var sensorLostDelayMinutes: String
 
     /**
      * Save a thermal monitor paging policy to the database
@@ -56,6 +70,7 @@ class PagingPolicyController {
      * @param thermalMonitorPagingPolicyEntity
      */
     suspend fun delete(thermalMonitorPagingPolicyEntity: ThermalMonitorPagingPolicyEntity) {
+        pagedPolicyRepository.listByPolicy(policy = thermalMonitorPagingPolicyEntity).forEach { pagedPolicyRepository.deleteSuspending(it) }
         pagingPolicyRepository.deleteSuspending(thermalMonitorPagingPolicyEntity)
     }
 
@@ -84,7 +99,11 @@ class PagingPolicyController {
      * @param first
      * @param max
      */
-    suspend fun list(thermalMonitor: ThermalMonitorEntity, first: Int, max: Int): List<ThermalMonitorPagingPolicyEntity> {
+    suspend fun list(
+        thermalMonitor: ThermalMonitorEntity,
+        first: Int? = null,
+        max: Int? = null
+    ): List<ThermalMonitorPagingPolicyEntity> {
         return pagingPolicyRepository.list(thermalMonitor = thermalMonitor, first = first, max = max).first
     }
 
@@ -114,5 +133,82 @@ class PagingPolicyController {
             pagingPolicyContact = pagingPolicyContact,
             modifierId = modifierId
         )
+    }
+
+    /**
+     * Trigger the next policy for a given incident if policy's time is due
+     *
+     * @param incident
+     */
+    suspend fun triggerNextPolicy(incident: ThermalMonitorIncidentEntity) {
+        val alreadyTriggeredPolicies = pagedPolicyRepository.listByIncident(incident)
+
+        val policies = pagingPolicyRepository
+            .list(thermalMonitor = incident.thermalMonitor)
+            .first
+
+        if (policies.size == alreadyTriggeredPolicies.size) {
+            return
+        }
+
+        val nextPolicy = policies[alreadyTriggeredPolicies.size]
+
+        val now = OffsetDateTime.now()
+
+        val trigger = if (alreadyTriggeredPolicies.isEmpty()) {
+            incident.triggeredAt.isBefore(now.minusSeconds(nextPolicy.escalationDelaySeconds!!.toLong()))
+        } else {
+            val previousPolicy = alreadyTriggeredPolicies.first()
+            previousPolicy.createdAt.isBefore(now.minusSeconds(nextPolicy.escalationDelaySeconds!!.toLong()))
+        }
+
+        if (trigger) {
+            when (PagingPolicyType.valueOf(nextPolicy.policyType)) {
+                PagingPolicyType.EMAIL -> {
+                    val receiverEmail = nextPolicy.pagingPolicyContact.email
+                    if (receiverEmail != null) {
+                        val subject = "Hälytys: ${incident.thermalMonitor.name}"
+                        val content = constructMessage(incident)
+
+                        emailController.sendEmail(
+                            to = receiverEmail,
+                            subject = subject,
+                            content = content
+                        )
+                    }
+
+                }
+            }
+            pagedPolicyRepository.create(incident, nextPolicy)
+        }
+    }
+
+    /**
+     * Construct a message based on the type of the incident
+     * This message will be sent to a policy contact
+     */
+    fun constructMessage(incident: ThermalMonitorIncidentEntity): String {
+        val temperature = incident.temperature
+        val thresholdLow = incident.thermalMonitor.thresholdLow
+        val thresholdHigh = incident.thermalMonitor.thresholdHigh
+
+        if (temperature == null) {
+            return "Vahti: ${incident.thermalMonitor.name} \n"
+                .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
+                .plus("Ongelma: lämpötila ei päivittynyt määräajassa \n")
+                .plus("Järjestelmälle asetettu määräaika lämpötilan päivittymiselle on $sensorLostDelayMinutes minuuttia")
+        } else if (thresholdLow != null && temperature < thresholdLow) {
+            return "Vahti: ${incident.thermalMonitor.name} \n"
+                .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
+                .plus("Ongelma: lämpötila on liian alhainen")
+                .plus("Lämpötila: $temperature")
+        } else if (thresholdHigh != null && temperature > thresholdHigh) {
+            return "Vahti: ${incident.thermalMonitor.name} \n"
+                .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
+                .plus("Ongelma: lämpötila on liian korkea")
+                .plus("Lämpötila: $temperature")
+        }
+
+        return "Tuntematon hälytys"
     }
 }

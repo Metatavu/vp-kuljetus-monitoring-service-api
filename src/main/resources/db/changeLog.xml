@@ -147,4 +147,21 @@
         </update>
         <addNotNullConstraint tableName="monitorthermometer" columnName="archived" columnDataType="boolean"/>
     </changeSet>
+
+    <changeSet id="pagedpolicies" author="Simeon Platonov">
+        <createTable tableName="pagedpolicy">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="incident_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitorincident" referencedColumnNames="id" foreignKeyName="FK_PAGEDPOLICY_THERMALMONITORINCIDENT"/>
+            </column>
+            <column name="policy_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitorpagingpolicy" referencedColumnNames="id" foreignKeyName="FK_PAGEDPOLICY_THERMALMONITORPAGINGPOLICY"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

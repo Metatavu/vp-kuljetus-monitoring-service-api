@@ -164,4 +164,39 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="scheduledmonitors" author="Simeon Platonov">
+        <addColumn tableName="thermalmonitor">
+            <column name="monitortype" type="varchar(191)"/>
+        </addColumn>
+        <update tableName="thermalmonitor">
+            <column name="monitortype" value="SINGULAR"/>
+        </update>
+        <addNotNullConstraint tableName="thermalmonitor" columnName="monitortype" columnDataType="varchar(191)"/>
+        <createTable tableName="thermalmonitorscheduleperiod">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="thermalmonitor_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitor" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORSCHEDULEPERIOD_THERMALMONITOR"/>
+            </column>
+            <column name="startweekday" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="starthour" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="startminute" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endweekday" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endhour" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endminute" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

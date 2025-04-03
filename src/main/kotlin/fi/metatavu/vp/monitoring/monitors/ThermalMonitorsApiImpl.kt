@@ -2,7 +2,9 @@ package fi.metatavu.vp.monitoring.monitors
 
 import fi.metatavu.vp.api.model.ThermalMonitor
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
+import fi.metatavu.vp.api.model.ThermalMonitorType
 import fi.metatavu.vp.api.spec.ThermalMonitorsApi
+import fi.metatavu.vp.monitoring.monitors.schedules.ThermalMonitorSchedulePeriodController
 import fi.metatavu.vp.monitoring.rest.AbstractApi
 import io.quarkus.hibernate.reactive.panache.common.WithSession
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
@@ -24,6 +26,9 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     @Inject
     lateinit var thermalMonitorTranslator: ThermalMonitorTranslator
 
+    @Inject
+    lateinit var thermalMonitorSchedulePeriodController: ThermalMonitorSchedulePeriodController
+
     @ConfigProperty(name = "vp.monitoring.cron.apiKey")
     lateinit var cronKey: String
 
@@ -34,6 +39,36 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     @WithTransaction
     override fun createThermalMonitor(thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
         loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
+
+        if (thermalMonitor.monitorType == ThermalMonitorType.SINGULAR &&
+            thermalMonitor.schedule != null) {
+            return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have schedule")
+        }
+
+        if (thermalMonitor.monitorType == ThermalMonitorType.SCHEDULED &&
+            thermalMonitor.schedule?.isNotEmpty() != true) {
+            return@withCoroutineScope createBadRequest("Monitors with monitorType SCHEDULED must have a schedule")
+        }
+
+        if (thermalMonitor.schedule != null) {
+            thermalMonitor.schedule.forEach { schedulePeriod ->
+                val startHour = schedulePeriod.start.hour
+                val startMinute = schedulePeriod.start.minute
+                if (!thermalMonitorSchedulePeriodController.isScheduleTimeValid(startHour, startMinute)) {
+                    return@withCoroutineScope createBadRequest("Invalid start time $startHour:$startMinute for a schedule period")
+                }
+
+                val endHour = schedulePeriod.end.hour
+                val endMinute = schedulePeriod.end.minute
+                if (!thermalMonitorSchedulePeriodController.isScheduleTimeValid(endHour, endMinute)) {
+                    return@withCoroutineScope createBadRequest("Invalid end time $endHour:$endMinute for a schedule period")
+                }
+
+                if (!thermalMonitorSchedulePeriodController.isSchedulePeriodStartBeforeEnd(schedulePeriod)) {
+                    return@withCoroutineScope createBadRequest("Schedule start time must be before end time")
+                }
+            }
+        }
 
         createOk(thermalMonitorTranslator.translate(thermalMonitorController.create(
             thermalMonitor = thermalMonitor,

@@ -7,6 +7,7 @@ import fi.metatavu.vp.monitoring.functional.settings.DefaultTestProfile
 import fi.metatavu.vp.test.client.models.ThermalMonitor
 import fi.metatavu.vp.test.client.models.ThermalMonitorIncidentStatus
 import fi.metatavu.vp.test.client.models.ThermalMonitorStatus
+import fi.metatavu.vp.test.client.models.ThermalMonitorType
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.*
@@ -34,7 +35,8 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId, thermometer2Id),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.SINGULAR
             )
         )
 
@@ -111,7 +113,8 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.SINGULAR
             )
         )
 
@@ -201,7 +204,8 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId, thermometerId2),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.SINGULAR
             )
         )
 
@@ -250,7 +254,8 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId3, thermometerId4),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.SINGULAR
             )
         )
 
@@ -381,7 +386,8 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId, thermometerId2),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.SINGULAR
             )
         )
 

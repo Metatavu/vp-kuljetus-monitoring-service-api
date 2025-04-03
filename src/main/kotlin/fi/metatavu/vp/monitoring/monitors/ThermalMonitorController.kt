@@ -2,7 +2,7 @@ package fi.metatavu.vp.monitoring.monitors
 
 import fi.metatavu.vp.api.model.ThermalMonitor
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
-import fi.metatavu.vp.monitoring.incidents.pagedpolicies.PagedPolicyRepository
+import fi.metatavu.vp.monitoring.monitors.schedules.ThermalMonitorSchedulePeriodController
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
 import fi.metatavu.vp.monitoring.policies.PagingPolicyController
 import jakarta.enterprise.context.ApplicationScoped
@@ -22,7 +22,7 @@ class ThermalMonitorController {
     lateinit var pagingPolicyController: PagingPolicyController
 
     @Inject
-    lateinit var pagedPolicyRepository: PagedPolicyRepository
+    lateinit var thermalMonitorSchedulePeriodController: ThermalMonitorSchedulePeriodController
 
     /**
      * Create a thermal monitor to monitor for incidents
@@ -38,7 +38,8 @@ class ThermalMonitorController {
             thresholdLow = thermalMonitor.lowerThresholdTemperature,
             thresholdHigh = thermalMonitor.upperThresholdTemperature,
             activeFrom = thermalMonitor.activeFrom,
-            activeTo = thermalMonitor.activeTo
+            activeTo = thermalMonitor.activeTo,
+            monitorType = thermalMonitor.monitorType.toString()
         )
 
         thermalMonitor.thermometerIds.forEach {
@@ -46,6 +47,18 @@ class ThermalMonitorController {
                 thermometerId = it,
                 thermalMonitorEntity = monitor,
                 creatorId = creatorId
+            )
+        }
+
+        thermalMonitor.schedule?.forEach { schedule ->
+            thermalMonitorSchedulePeriodController.create(
+                thermalMonitor = monitor,
+                startWeekDay = schedule.start.weekday,
+                startHour = schedule.start.hour,
+                startMinute = schedule.start.minute,
+                endWeekDay = schedule.end.weekday,
+                endHour = schedule.end.hour,
+                endMinute = schedule.end.minute
             )
         }
 
@@ -77,6 +90,10 @@ class ThermalMonitorController {
         }
 
         pagingPolicyController.deletePoliciesByMonitor(thermalMonitorEntity)
+
+        thermalMonitorSchedulePeriodController.list(thermalMonitor = thermalMonitorEntity).forEach {
+            thermalMonitorSchedulePeriodController.delete(it)
+        }
 
         thermalMonitorRepository.deleteSuspending(thermalMonitorEntity)
     }

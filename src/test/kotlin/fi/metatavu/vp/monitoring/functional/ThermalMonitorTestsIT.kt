@@ -1,8 +1,7 @@
 package fi.metatavu.vp.monitoring.functional
 
 import fi.metatavu.vp.monitoring.functional.settings.DefaultTestProfile
-import fi.metatavu.vp.test.client.models.ThermalMonitor
-import fi.metatavu.vp.test.client.models.ThermalMonitorStatus
+import fi.metatavu.vp.test.client.models.*
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -31,6 +30,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             thermometerIds = arrayOf(thermometer1, thermometer2),
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
+            monitorType = ThermalMonitorType.SINGULAR,
             activeFrom = activeFrom.toString(),
             activeTo = activeTo.toString()
         )
@@ -46,8 +46,30 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         assertEquals(2, created.thermometerIds.size, "Monitor creation should have returned monitor with 2 thermometerIds")
         assertNotNull(created.thermometerIds.find { thermometer -> thermometer == thermometer1 }, "Monitor creation did not return the same id for the first thermometer than what was entered")
         assertNotNull(created.thermometerIds.find { thermometer -> thermometer == thermometer2 }, "Monitor creation did not return the same id for the second thermometer than what was entered")
-
+        assertEquals(ThermalMonitorType.SINGULAR, created.monitorType, "Monitor creation should return monitor with monitorType SINGULAR")
         it.user.thermalMonitors.assertCreateFail(403, thermalMonitor)
+
+        it.manager.thermalMonitors.assertCreateFail(
+            expectedStatus = 400,
+            thermalMonitor = ThermalMonitor(
+                name = "Test",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(),
+                monitorType = ThermalMonitorType.SINGULAR,
+                schedule = arrayOf()
+            )
+        )
+
+        it.manager.thermalMonitors.assertCreateFail(
+            expectedStatus = 400,
+            thermalMonitor = ThermalMonitor(
+                name = "Test",
+                status = ThermalMonitorStatus.ACTIVE,
+                thermometerIds = arrayOf(),
+                monitorType = ThermalMonitorType.SCHEDULED,
+                schedule = null
+            )
+        )
     }
 
     @Test
@@ -56,6 +78,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             name = "test",
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
+            monitorType = ThermalMonitorType.SINGULAR
         )
 
         val created = it.manager.thermalMonitors.create(thermalMonitor)
@@ -73,12 +96,14 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             name = "test",
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
+            monitorType = ThermalMonitorType.SINGULAR
         )
 
         val thermalMonitor2 = ThermalMonitor(
             name = "test",
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
+            monitorType = ThermalMonitorType.SINGULAR
         )
 
         val created = it.manager.thermalMonitors.create(thermalMonitor)
@@ -95,12 +120,14 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             name = "test",
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
+            monitorType = ThermalMonitorType.SINGULAR
         )
 
         val thermalMonitor2 = ThermalMonitor(
             name = "test",
             status = ThermalMonitorStatus.PENDING,
             thermometerIds = arrayOf(),
+            monitorType = ThermalMonitorType.SINGULAR
         )
 
         for (i in 0..9) {
@@ -148,6 +175,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
             activeFrom = time1.toString(),
+            monitorType = ThermalMonitorType.SINGULAR,
             activeTo = time2.toString()
         )
 
@@ -156,6 +184,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             status = ThermalMonitorStatus.PENDING,
             thermometerIds = arrayOf(),
             activeFrom = time2.toString(),
+            monitorType = ThermalMonitorType.SINGULAR,
             activeTo = time3.toString()
         )
 
@@ -164,6 +193,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             status = ThermalMonitorStatus.PENDING,
             thermometerIds = arrayOf(),
             activeFrom = time3.toString(),
+            monitorType = ThermalMonitorType.SINGULAR,
             activeTo = time4.toString()
         )
 
@@ -197,6 +227,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
             activeFrom = activeFrom.toString(),
+            monitorType = ThermalMonitorType.SINGULAR,
             activeTo = activeTo.toString()
         )
 
@@ -213,6 +244,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -100f,
             upperThresholdTemperature = 100f,
             activeFrom = activeFromNew.toString(),
+            monitorType = ThermalMonitorType.SINGULAR,
             activeTo = activeToNew.toString()
         )
 
@@ -245,6 +277,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
             activeFrom = activeFromNow.toString(),
+            monitorType = ThermalMonitorType.SINGULAR,
             activeTo = activeTo10Hours.toString()
         )
 
@@ -255,6 +288,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
             activeFrom = activeFromOneHour.toString(),
+            monitorType = ThermalMonitorType.SINGULAR,
             activeTo = activeTo10Hours.toString()
         )
 
@@ -280,6 +314,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
             activeFrom = activeFrom10HoursAgo.toString(),
+            monitorType = ThermalMonitorType.SINGULAR,
             activeTo = activeTo1HourAgo.toString()
         )
 
@@ -293,5 +328,40 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be only one ACTIVE monitor at this point")
 
         assertEquals(ThermalMonitorStatus.FINISHED, it.manager.thermalMonitors.findThermalMonitor(monitorToFinish.id!!).status, "Monitor ${monitorToFinish.id} should be FINISHED at this point")
+    }
+
+    @Test
+    fun testCreateScheduledMonitor() = createTestBuilder().use {
+        val thermalMonitor = ThermalMonitor(
+            name = "Test",
+            status = ThermalMonitorStatus.ACTIVE,
+            thermometerIds = arrayOf(),
+            monitorType = ThermalMonitorType.SCHEDULED,
+            schedule = arrayOf(
+                ThermalMonitorSchedulePeriod(
+                    start = ThermalMonitorScheduleDate(
+                        weekday = ThermalMonitorScheduleWeekDay.MONDAY,
+                        hour = 10,
+                        minute = 0
+                    ),
+                    end = ThermalMonitorScheduleDate(
+                        weekday = ThermalMonitorScheduleWeekDay.FRIDAY,
+                        hour = 20,
+                        minute = 6
+                    )
+                )
+            )
+        )
+
+        val created = it.manager.thermalMonitors.create(thermalMonitor)
+        assertEquals(1, created.schedule!!.size)
+        val schedulePeriod = created.schedule.first()
+        assertEquals(ThermalMonitorScheduleWeekDay.MONDAY, schedulePeriod.start.weekday, "Schedule start weekday should be MONDAY")
+        assertEquals(10, schedulePeriod.start.hour, "Schedule start hour should be 10")
+        assertEquals(0, schedulePeriod.start.minute, "Schedule start minute should be 0")
+
+        assertEquals(ThermalMonitorScheduleWeekDay.FRIDAY, schedulePeriod.end.weekday, "Schedule end weekday should be FRIDAY")
+        assertEquals(20, schedulePeriod.end.hour, "Schedule end hour should be 20")
+        assertEquals(6, schedulePeriod.end.minute, "Schedule end minute should be 6")
     }
 }

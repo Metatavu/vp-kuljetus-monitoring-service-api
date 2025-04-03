@@ -23,6 +23,7 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
      * @param thresholdHigh
      * @param activeFrom
      * @param activeTo
+     * @param monitorType
      */
     suspend fun create(
         name: String,
@@ -31,7 +32,8 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         thresholdLow: Float?,
         thresholdHigh: Float?,
         activeFrom: OffsetDateTime?,
-        activeTo: OffsetDateTime?
+        activeTo: OffsetDateTime?,
+        monitorType: String
     ): ThermalMonitorEntity {
         val monitor = ThermalMonitorEntity()
         monitor.id = UUID.randomUUID()
@@ -43,6 +45,7 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         monitor.thresholdHigh = thresholdHigh
         monitor.activeFrom = activeFrom
         monitor.activeTo = activeTo
+        monitor.monitorType = monitorType
         return persistSuspending(monitor)
     }
 
@@ -106,6 +109,7 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         updated.thresholdHigh = thermalMonitor.upperThresholdTemperature
         updated.activeFrom = thermalMonitor.activeFrom
         updated.activeTo = thermalMonitor.activeTo
+        updated.monitorType = thermalMonitor.monitorType.toString()
 
         return persistSuspending(updated)
     }

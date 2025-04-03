@@ -35,6 +35,9 @@ class ThermalMonitorEntity: Metadata() {
     @Column
     var activeTo: OffsetDateTime? = null
 
+    @Column
+    lateinit var monitorType: String
+
     override lateinit var creatorId: UUID
 
     override lateinit var lastModifierId: UUID

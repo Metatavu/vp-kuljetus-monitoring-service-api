@@ -42,7 +42,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
 
         if (thermalMonitor.monitorType == ThermalMonitorType.SINGULAR &&
             thermalMonitor.schedule != null) {
-            return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have schedule")
+            return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have a schedule")
         }
 
         if (thermalMonitor.monitorType == ThermalMonitorType.SCHEDULED &&
@@ -132,6 +132,36 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     @WithTransaction
     override fun updateThermalMonitor(thermalMonitorId: UUID, thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
         loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
+
+        if (thermalMonitor.monitorType == ThermalMonitorType.SINGULAR &&
+            thermalMonitor.schedule != null) {
+            return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have a schedule")
+        }
+
+        if (thermalMonitor.monitorType == ThermalMonitorType.SCHEDULED &&
+            thermalMonitor.schedule?.isNotEmpty() != true) {
+            return@withCoroutineScope createBadRequest("Monitors with monitorType SCHEDULED must have a schedule")
+        }
+
+        if (thermalMonitor.schedule != null) {
+            thermalMonitor.schedule.forEach { schedulePeriod ->
+                val startHour = schedulePeriod.start.hour
+                val startMinute = schedulePeriod.start.minute
+                if (!thermalMonitorSchedulePeriodController.isScheduleTimeValid(startHour, startMinute)) {
+                    return@withCoroutineScope createBadRequest("Invalid start time $startHour:$startMinute for a schedule period")
+                }
+
+                val endHour = schedulePeriod.end.hour
+                val endMinute = schedulePeriod.end.minute
+                if (!thermalMonitorSchedulePeriodController.isScheduleTimeValid(endHour, endMinute)) {
+                    return@withCoroutineScope createBadRequest("Invalid end time $endHour:$endMinute for a schedule period")
+                }
+
+                if (!thermalMonitorSchedulePeriodController.isSchedulePeriodStartBeforeEnd(schedulePeriod)) {
+                    return@withCoroutineScope createBadRequest("Schedule start time must be before end time")
+                }
+            }
+        }
 
         val found = thermalMonitorController.find(thermalMonitorId) ?: return@withCoroutineScope createNotFound()
 

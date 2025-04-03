@@ -103,7 +103,6 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         val updated = thermalMonitorEntity
         updated.name = thermalMonitor.name
         updated.status = thermalMonitor.status.toString()
-        updated.creatorId = thermalMonitor.creatorId!!
         updated.lastModifierId = modifier
         updated.thresholdLow = thermalMonitor.lowerThresholdTemperature
         updated.thresholdHigh = thermalMonitor.upperThresholdTemperature

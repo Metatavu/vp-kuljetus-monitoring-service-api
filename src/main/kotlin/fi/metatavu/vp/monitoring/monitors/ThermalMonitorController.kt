@@ -1,7 +1,9 @@
 package fi.metatavu.vp.monitoring.monitors
 
 import fi.metatavu.vp.api.model.ThermalMonitor
+import fi.metatavu.vp.api.model.ThermalMonitorSchedulePeriod
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
+import fi.metatavu.vp.api.model.ThermalMonitorType
 import fi.metatavu.vp.monitoring.monitors.schedules.ThermalMonitorSchedulePeriodController
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
 import fi.metatavu.vp.monitoring.policies.PagingPolicyController
@@ -50,16 +52,18 @@ class ThermalMonitorController {
             )
         }
 
-        thermalMonitor.schedule?.forEach { schedule ->
-            thermalMonitorSchedulePeriodController.create(
-                thermalMonitor = monitor,
-                startWeekDay = schedule.start.weekday,
-                startHour = schedule.start.hour,
-                startMinute = schedule.start.minute,
-                endWeekDay = schedule.end.weekday,
-                endHour = schedule.end.hour,
-                endMinute = schedule.end.minute
-            )
+        if (thermalMonitor.monitorType == ThermalMonitorType.SCHEDULED) {
+            thermalMonitor.schedule!!.forEach { schedule ->
+                thermalMonitorSchedulePeriodController.create(
+                    thermalMonitor = monitor,
+                    startWeekDay = schedule.start.weekday,
+                    startHour = schedule.start.hour,
+                    startMinute = schedule.start.minute,
+                    endWeekDay = schedule.end.weekday,
+                    endHour = schedule.end.hour,
+                    endMinute = schedule.end.minute
+                )
+            }
         }
 
         return monitor
@@ -139,6 +143,59 @@ class ThermalMonitorController {
         thermalMonitorEntity: ThermalMonitorEntity,
         modifier: UUID,
         deleteUnusedThermometersPermanently: Boolean = false): ThermalMonitorEntity {
+
+        if (thermalMonitor.monitorType == ThermalMonitorType.SCHEDULED) {
+            handleSchedulePeriodsUpdate(
+                thermalMonitorEntity = thermalMonitorEntity,
+                schedulePeriods = thermalMonitor.schedule!!
+            )
+        }
+
+        handleThermometersUpdate(
+            thermalMonitor = thermalMonitor,
+            thermalMonitorEntity = thermalMonitorEntity,
+            modifier = modifier,
+            deleteUnusedThermometersPermanently = deleteUnusedThermometersPermanently
+        )
+
+        return thermalMonitorRepository.updateFromRest(thermalMonitorEntity, thermalMonitor, modifier)
+    }
+
+    private suspend fun handleSchedulePeriodsUpdate(
+        thermalMonitorEntity: ThermalMonitorEntity,
+        schedulePeriods: List<ThermalMonitorSchedulePeriod>
+    ) {
+        thermalMonitorSchedulePeriodController.list(thermalMonitor = thermalMonitorEntity).forEach {
+            thermalMonitorSchedulePeriodController.delete(it)
+        }
+
+        schedulePeriods.forEach {
+            thermalMonitorSchedulePeriodController.create(
+                thermalMonitor = thermalMonitorEntity,
+                startWeekDay = it.start.weekday,
+                startHour = it.start.hour,
+                startMinute = it.start.minute,
+                endWeekDay = it.end.weekday,
+                endHour = it.end.hour,
+                endMinute = it.end.minute
+            )
+        }
+    }
+
+    /**
+     * Creates and archives (or deletes in testing environments) thermometers based on the updated thermometer list on a monitor
+     *
+     * @param thermalMonitor
+     * @param thermalMonitorEntity
+     * @param modifier
+     * @param deleteUnusedThermometersPermanently
+     */
+    private suspend fun handleThermometersUpdate(
+        thermalMonitor: ThermalMonitor,
+        thermalMonitorEntity: ThermalMonitorEntity,
+        modifier: UUID,
+        deleteUnusedThermometersPermanently: Boolean = false
+    ) {
         val existingThermometers = monitorThermometerController.listThermometers(
             thermalMonitorEntity = thermalMonitorEntity,
             thermometerId = null,
@@ -167,8 +224,6 @@ class ThermalMonitorController {
                 )
             }
         }
-
-        return thermalMonitorRepository.updateFromRest(thermalMonitorEntity, thermalMonitor, modifier)
     }
 
     /**

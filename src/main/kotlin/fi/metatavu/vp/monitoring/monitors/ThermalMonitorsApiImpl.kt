@@ -56,7 +56,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
             }
 
             if (thermalMonitor.status == ThermalMonitorStatus.PENDING || thermalMonitor.status == ThermalMonitorStatus.FINISHED) {
-                return@withCoroutineScope createBadRequest("Status ${thermalMonitor.status} is not allowed scheduled monitors")
+                return@withCoroutineScope createBadRequest("Status ${thermalMonitor.status} is not allowed for scheduled monitors")
             }
         }
 
@@ -161,7 +161,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
             }
 
             if (thermalMonitor.status == ThermalMonitorStatus.PENDING || thermalMonitor.status == ThermalMonitorStatus.FINISHED) {
-                return@withCoroutineScope createBadRequest("Status ${thermalMonitor.status} is not allowed scheduled monitors")
+                return@withCoroutineScope createBadRequest("Status ${thermalMonitor.status} is not allowed for scheduled monitors")
             }
         }
 

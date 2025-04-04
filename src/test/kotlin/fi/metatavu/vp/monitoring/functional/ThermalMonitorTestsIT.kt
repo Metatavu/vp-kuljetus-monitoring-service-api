@@ -70,6 +70,13 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
                 schedule = null
             )
         )
+
+        it.manager.thermalMonitors.assertCreateFail(
+            expectedStatus = 400,
+            thermalMonitor = thermalMonitor.copy(
+                status = ThermalMonitorStatus.INACTIVE
+            )
+        )
     }
 
     @Test
@@ -283,10 +290,17 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
                 )
             )
         )
+
+        it.manager.thermalMonitors.assertCreateFail(
+            expectedStatus = 400,
+            thermalMonitor = updated.copy(
+                status = ThermalMonitorStatus.INACTIVE
+            )
+        )
     }
 
     @Test
-    fun testThermometerStatusResolve() = createTestBuilder().use {
+    fun testSingularMonitorStatusResolve() = createTestBuilder().use {
         val activeFromNow = OffsetDateTime.now()
         val activeFromOneHour = OffsetDateTime.now().plusHours(1)
         val activeTo10Hours = OffsetDateTime.now().plusHours(10)
@@ -486,6 +500,20 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
                 )
             )
         )
+
+        it.manager.thermalMonitors.assertCreateFail(
+            expectedStatus = 400,
+            thermalMonitor = thermalMonitor.copy(
+                status = ThermalMonitorStatus.PENDING
+            )
+        )
+
+        it.manager.thermalMonitors.assertCreateFail(
+            expectedStatus = 400,
+            thermalMonitor = thermalMonitor.copy(
+                status = ThermalMonitorStatus.FINISHED
+            )
+        )
     }
 
     @Test
@@ -657,6 +685,220 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             )
         )
 
+        it.manager.thermalMonitors.assertCreateFail(
+            expectedStatus = 400,
+            thermalMonitor = found.copy(
+                status = ThermalMonitorStatus.PENDING
+            )
+        )
+
+        it.manager.thermalMonitors.assertCreateFail(
+            expectedStatus = 400,
+            thermalMonitor = found.copy(
+                status = ThermalMonitorStatus.FINISHED
+            )
+        )
+    }
+
+    @Test
+    fun testScheduledMonitorStatusResolve() = createTestBuilder().use {
+        val time = OffsetDateTime.now()
+
+        val (inactive1Start, inactive1End) = if (time.dayOfWeek.value != 6)  {
+            Pair(
+                time.plusDays(1),
+                time.plusDays(2)
+            )
+        } else {
+            Pair(
+                time.plusDays(2),
+                time.plusDays(3)
+            )
+        }
+
+        val thermalMonitor = ThermalMonitor(
+            name = "Test",
+            status = ThermalMonitorStatus.INACTIVE,
+            thermometerIds = arrayOf(),
+            monitorType = ThermalMonitorType.SCHEDULED,
+            schedule = arrayOf(
+                ThermalMonitorSchedulePeriod(
+                    start = ThermalMonitorScheduleDate(
+                        weekday = ThermalMonitorScheduleWeekDay.entries[inactive1Start.dayOfWeek.value - 1],
+                        hour = inactive1Start.hour,
+                        minute = inactive1Start.minute
+                    ),
+                    end = ThermalMonitorScheduleDate(
+                        weekday = ThermalMonitorScheduleWeekDay.entries[inactive1End.dayOfWeek.value - 1],
+                        hour = inactive1End.hour,
+                        minute = inactive1End.minute
+                    )
+                )
+            )
+        )
+
+        val created = it.manager.thermalMonitors.create(
+            thermalMonitor = thermalMonitor
+        )
+
+        it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be one INACTIVE monitor")
+        assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be no ACTIVE monitors")
+
+        val (active1Start, active1End) = when (time.dayOfWeek.value)  {
+            7 -> Pair(
+                time.minusDays(1),
+                time.plusMinutes(10)
+            )
+            1 -> Pair(
+                time,
+                time.plusDays(1)
+            )
+            else -> Pair(
+                time.minusDays(1),
+                time.plusDays(1)
+            )
+        }
+
+        it.manager.thermalMonitors.update(
+            id = created.id!!,
+            thermalMonitor = created.copy(
+                schedule = arrayOf(
+                    ThermalMonitorSchedulePeriod(
+                        start = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[active1Start.dayOfWeek.value - 1],
+                            hour = active1Start.hour,
+                            minute = active1Start.minute
+                        ),
+                        end = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[active1End.dayOfWeek.value - 1],
+                            hour = active1End.hour,
+                            minute = active1End.minute
+                        )
+                    )
+                )
+            )
+        )
+
+        it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be no INACTIVE monitors")
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be one ACTIVE monitor")
+
+        val inactive2Start = time.plusHours(1)
+        val inactive2End = time.plusHours(2)
+
+        it.manager.thermalMonitors.update(
+            id = created.id,
+            thermalMonitor = created.copy(
+                status = ThermalMonitorStatus.ACTIVE,
+                schedule = arrayOf(
+                    ThermalMonitorSchedulePeriod(
+                        start = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[inactive2Start.dayOfWeek.value - 1],
+                            hour = inactive2Start.hour,
+                            minute = inactive2Start.minute
+                        ),
+                        end = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[inactive2End.dayOfWeek.value - 1],
+                            hour = inactive2End.hour,
+                            minute = inactive2End.minute
+                        )
+                    )
+                )
+            )
+        )
+
+        it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be one INACTIVE monitor")
+        assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be no ACTIVE monitors")
+
+        val active2Start = time.minusHours(1)
+        val active2End = time.plusHours(1)
+
+        it.manager.thermalMonitors.update(
+            id = created.id,
+            thermalMonitor = created.copy(
+                schedule = arrayOf(
+                    ThermalMonitorSchedulePeriod(
+                        start = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[active2Start.dayOfWeek.value - 1],
+                            hour = active2Start.hour,
+                            minute = active2Start.minute
+                        ),
+                        end = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[active2End.dayOfWeek.value - 1],
+                            hour = active2End.hour,
+                            minute = active2End.minute
+                        )
+                    )
+                )
+            )
+        )
+
+        it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be no INACTIVE monitors")
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be one ACTIVE monitor")
+
+        val inactive3Start = time.plusMinutes(10)
+        val inactive3End = time.plusMinutes(20)
+
+        it.manager.thermalMonitors.update(
+            id = created.id,
+            thermalMonitor = created.copy(
+                status = ThermalMonitorStatus.ACTIVE,
+                schedule = arrayOf(
+                    ThermalMonitorSchedulePeriod(
+                        start = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[inactive3Start.dayOfWeek.value - 1],
+                            hour = inactive3Start.hour,
+                            minute = inactive3Start.minute
+                        ),
+                        end = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[inactive3End.dayOfWeek.value - 1],
+                            hour = inactive3End.hour,
+                            minute = inactive3End.minute
+                        )
+                    )
+                )
+            )
+        )
+
+        it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be one INACTIVE monitor")
+        assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be no ACTIVE monitors")
+
+        val active3Start = time.minusMinutes(10)
+        val active3End = time.plusMinutes(10)
+
+        it.manager.thermalMonitors.update(
+            id = created.id,
+            thermalMonitor = created.copy(
+                schedule = arrayOf(
+                    ThermalMonitorSchedulePeriod(
+                        start = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[active3Start.dayOfWeek.value - 1],
+                            hour = active3Start.hour,
+                            minute = active3Start.minute
+                        ),
+                        end = ThermalMonitorScheduleDate(
+                            weekday = ThermalMonitorScheduleWeekDay.entries[active3End.dayOfWeek.value - 1],
+                            hour = active3End.hour,
+                            minute = active3End.minute
+                        )
+                    )
+                )
+            )
+        )
+
+        it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be no INACTIVE monitors")
+        assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be one ACTIVE monitor")
 
     }
 }

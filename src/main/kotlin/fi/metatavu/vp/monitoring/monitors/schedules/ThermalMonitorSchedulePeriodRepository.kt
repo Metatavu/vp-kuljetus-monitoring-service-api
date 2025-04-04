@@ -5,6 +5,7 @@ import fi.metatavu.vp.monitoring.persistence.AbstractRepository
 import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import jakarta.enterprise.context.ApplicationScoped
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @ApplicationScoped
@@ -46,8 +47,14 @@ class ThermalMonitorSchedulePeriodRepository: AbstractRepository<ThermalMonitorS
      * List thermal monitor schedule periods with given filters from the database
      *
      * @param thermalMonitor
+     * @param activeAt
+     * @param thermalMonitorStatus
      */
-    suspend fun list(thermalMonitor: ThermalMonitorEntity?): List<ThermalMonitorSchedulePeriodEntity> {
+    suspend fun list(
+        thermalMonitor: ThermalMonitorEntity?,
+        activeAt: OffsetDateTime?,
+        thermalMonitorStatus: String?
+    ): List<ThermalMonitorSchedulePeriodEntity> {
         val queryBuilder = StringBuilder()
         val parameters = Parameters()
 
@@ -56,6 +63,19 @@ class ThermalMonitorSchedulePeriodRepository: AbstractRepository<ThermalMonitorS
             parameters.and("thermalMonitor", thermalMonitor)
         }
 
+        if (activeAt != null) {
+            addCondition(queryBuilder, "startWeekDay <= :activeAtWeekDay OR (startWeekDay = :activeAtWeekDay AND startHour <= :activeAtHour) OR (startWeekDay = :activeAtWeekDay AND startHour = :activeAtHour AND startMinute <= :activeAtMinute)")
+            addCondition(queryBuilder, "endWeekDay >= :activeAtWeekDay OR (endWeekDay = :activeAtWeekDay AND endHour >= :activeAtHour) OR (endWeekDay = :activeAtWeekDay AND endHour = :activeAtHour AND endMinute >= :activeAtMinute)")
+            parameters.and("activeAtWeekDay", activeAt.dayOfWeek.value - 1).and("activeAtHour", activeAt.hour).and("activeAtMinute", activeAt.minute)
+        }
+
+        if (thermalMonitorStatus != null) {
+            addCondition(queryBuilder, "thermalMonitor.status = :status")
+            parameters.and("status", thermalMonitorStatus)
+        }
+
         return list(queryBuilder.toString(), parameters).awaitSuspending()
     }
+
+
 }

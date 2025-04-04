@@ -117,6 +117,7 @@ class ThermalMonitorController {
         activeBefore: OffsetDateTime? = null,
         activeAfter: OffsetDateTime? = null,
         toBeActivatedBefore: OffsetDateTime? = null,
+        monitorType: ThermalMonitorType? = null,
         first: Int? = null,
         max: Int? = null
     ): List<ThermalMonitorEntity> {
@@ -125,6 +126,7 @@ class ThermalMonitorController {
             activeAfter = activeAfter,
             activeBefore = activeBefore,
             toBeActivatedBefore = toBeActivatedBefore,
+            monitorType = monitorType?.toString(),
             first = first,
             max = max
         ).first
@@ -161,6 +163,54 @@ class ThermalMonitorController {
         return thermalMonitorRepository.updateFromRest(thermalMonitorEntity, thermalMonitor, modifier)
     }
 
+    /**
+     * Resolve statuses for singular monitors based on individual monitor's settings
+     *
+     *  - Set status to ACTIVE if monitor status is PENDING and monitor activeFrom is before now
+     *  - Set status to FINISHED if monitor status is ACTIVE and monitor activeTo is before now
+     */
+    suspend fun resolveSingularMonitorStatuses() {
+        list(
+            status = ThermalMonitorStatus.PENDING,
+            monitorType = ThermalMonitorType.SINGULAR,
+            toBeActivatedBefore = OffsetDateTime.now()
+        ).forEach { thermalMonitorRepository.activateThermalMonitor(it) }
+
+        list(
+            status = ThermalMonitorStatus.ACTIVE,
+            monitorType = ThermalMonitorType.SINGULAR,
+            activeBefore = OffsetDateTime.now()
+        ).forEach { thermalMonitorRepository.finishThermalMonitor(it) }
+    }
+
+    /**
+     * Resolve statuses for scheduled monitors based on individual monitor's settings
+     *
+     *  - Set status to ACTIVE if monitor status is INACTIVE and monitor has a schedule period that is active right now
+     *  - Set status to INACTIVE if monitor status is ACTIVE and monitor does not have any active schedule periods
+     */
+    suspend fun resolveScheduledMonitorStatuses() {
+        thermalMonitorSchedulePeriodController.list(
+            activeAt = OffsetDateTime.now(),
+            thermalMonitorStatus = ThermalMonitorStatus.INACTIVE
+        ).forEach { schedulePeriod ->
+            val thermalMonitor = schedulePeriod.thermalMonitor
+            thermalMonitorRepository.activateThermalMonitor(thermalMonitor)
+        }
+
+        thermalMonitorRepository.listScheduledActiveMonitorsWithoutActiveSchedules(
+            currentTime = OffsetDateTime.now()
+        ).forEach { thermalMonitor ->
+            thermalMonitorRepository.deactivateThermalMonitor(thermalMonitor)
+        }
+    }
+
+    /**
+     * Creates and deletes schedule periods based on the updated schedule list on a monitor
+     *
+     * @param thermalMonitorEntity
+     * @param schedulePeriods
+     */
     private suspend fun handleSchedulePeriodsUpdate(
         thermalMonitorEntity: ThermalMonitorEntity,
         schedulePeriods: List<ThermalMonitorSchedulePeriod>
@@ -224,23 +274,5 @@ class ThermalMonitorController {
                 )
             }
         }
-    }
-
-    /**
-     * Resolve statuses for monitors based on individual monitor's settings
-     *
-     *  - Set status to ACTIVE if monitor status is PENDING and monitor activeFrom is before now
-     *  - Set status to FINISHED if monitor status is ACTIVE and monitor activeTo is before now
-     */
-    suspend fun resolveMonitorStatuses() {
-        list(
-            status = ThermalMonitorStatus.PENDING,
-            toBeActivatedBefore = OffsetDateTime.now()
-        ).forEach { thermalMonitorRepository.activateThermalMonitor(it) }
-
-        list(
-            status = ThermalMonitorStatus.ACTIVE,
-            activeBefore = OffsetDateTime.now()
-        ).forEach { thermalMonitorRepository.finishThermalMonitor(it) }
     }
 }

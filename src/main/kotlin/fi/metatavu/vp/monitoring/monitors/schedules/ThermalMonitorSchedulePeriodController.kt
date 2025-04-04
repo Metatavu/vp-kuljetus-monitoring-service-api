@@ -3,9 +3,11 @@ package fi.metatavu.vp.monitoring.monitors.schedules
 import fi.metatavu.vp.api.model.ThermalMonitorScheduleDate
 import fi.metatavu.vp.api.model.ThermalMonitorSchedulePeriod
 import fi.metatavu.vp.api.model.ThermalMonitorScheduleWeekDay
+import fi.metatavu.vp.api.model.ThermalMonitorStatus
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import java.time.OffsetDateTime
 
 @ApplicationScoped
 class ThermalMonitorSchedulePeriodController {
@@ -47,9 +49,20 @@ class ThermalMonitorSchedulePeriodController {
      * List thermal monitor schedule periods with given filters from the database
      *
      * @param thermalMonitor
+     * @param activeAt
+     * @param thermalMonitorStatus
+     *
      */
-    suspend fun list(thermalMonitor: ThermalMonitorEntity? = null): List<ThermalMonitorSchedulePeriodEntity> {
-        return thermalMonitorSchedulePeriodRepository.list(thermalMonitor = thermalMonitor)
+    suspend fun list(
+        thermalMonitor: ThermalMonitorEntity? = null,
+        activeAt: OffsetDateTime? = null,
+        thermalMonitorStatus: ThermalMonitorStatus? = null
+        ): List<ThermalMonitorSchedulePeriodEntity> {
+        return thermalMonitorSchedulePeriodRepository.list(
+            thermalMonitor = thermalMonitor,
+            activeAt = activeAt,
+            thermalMonitorStatus = thermalMonitorStatus?.toString()
+        )
     }
 
     /**

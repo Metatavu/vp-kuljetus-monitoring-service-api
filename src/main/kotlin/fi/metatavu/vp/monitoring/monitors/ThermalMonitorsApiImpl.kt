@@ -40,14 +40,24 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     override fun createThermalMonitor(thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
         loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
 
-        if (thermalMonitor.monitorType == ThermalMonitorType.SINGULAR &&
-            thermalMonitor.schedule != null) {
-            return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have a schedule")
+        if (thermalMonitor.monitorType == ThermalMonitorType.SINGULAR) {
+            if (thermalMonitor.schedule != null) {
+                return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have a schedule")
+            }
+
+            if (thermalMonitor.status == ThermalMonitorStatus.INACTIVE) {
+                return@withCoroutineScope createBadRequest("Status INACTIVE is not allowed for singular monitors")
+            }
         }
 
-        if (thermalMonitor.monitorType == ThermalMonitorType.SCHEDULED &&
-            thermalMonitor.schedule?.isNotEmpty() != true) {
-            return@withCoroutineScope createBadRequest("Monitors with monitorType SCHEDULED must have a schedule")
+        if (thermalMonitor.monitorType == ThermalMonitorType.SCHEDULED) {
+            if (thermalMonitor.schedule?.isNotEmpty() != true) {
+                return@withCoroutineScope createBadRequest("Monitors with monitorType SCHEDULED must have a schedule")
+            }
+
+            if (thermalMonitor.status == ThermalMonitorStatus.PENDING || thermalMonitor.status == ThermalMonitorStatus.FINISHED) {
+                return@withCoroutineScope createBadRequest("Status ${thermalMonitor.status} is not allowed scheduled monitors")
+            }
         }
 
         if (thermalMonitor.schedule != null) {
@@ -123,7 +133,9 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
             return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
         }
 
-        thermalMonitorController.resolveMonitorStatuses()
+        thermalMonitorController.resolveSingularMonitorStatuses()
+
+        thermalMonitorController.resolveScheduledMonitorStatuses()
 
         createOk()
     }
@@ -133,14 +145,24 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     override fun updateThermalMonitor(thermalMonitorId: UUID, thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
         loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
 
-        if (thermalMonitor.monitorType == ThermalMonitorType.SINGULAR &&
-            thermalMonitor.schedule != null) {
-            return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have a schedule")
+        if (thermalMonitor.monitorType == ThermalMonitorType.SINGULAR) {
+            if (thermalMonitor.schedule != null) {
+                return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have a schedule")
+            }
+
+            if (thermalMonitor.status == ThermalMonitorStatus.INACTIVE) {
+                return@withCoroutineScope createBadRequest("Status INACTIVE is not allowed for singular monitors")
+            }
         }
 
-        if (thermalMonitor.monitorType == ThermalMonitorType.SCHEDULED &&
-            thermalMonitor.schedule?.isNotEmpty() != true) {
-            return@withCoroutineScope createBadRequest("Monitors with monitorType SCHEDULED must have a schedule")
+        if (thermalMonitor.monitorType == ThermalMonitorType.SCHEDULED) {
+            if (thermalMonitor.schedule?.isNotEmpty() != true) {
+                return@withCoroutineScope createBadRequest("Monitors with monitorType SCHEDULED must have a schedule")
+            }
+
+            if (thermalMonitor.status == ThermalMonitorStatus.PENDING || thermalMonitor.status == ThermalMonitorStatus.FINISHED) {
+                return@withCoroutineScope createBadRequest("Status ${thermalMonitor.status} is not allowed scheduled monitors")
+            }
         }
 
         if (thermalMonitor.schedule != null) {

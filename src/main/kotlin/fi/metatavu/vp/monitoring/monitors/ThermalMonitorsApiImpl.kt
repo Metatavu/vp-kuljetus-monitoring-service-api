@@ -40,13 +40,13 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     override fun createThermalMonitor(thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
         loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
 
-        if (thermalMonitor.monitorType == ThermalMonitorType.SINGULAR) {
+        if (thermalMonitor.monitorType == ThermalMonitorType.ONE_OFF) {
             if (thermalMonitor.schedule != null) {
-                return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have a schedule")
+                return@withCoroutineScope createBadRequest("Monitors with monitorType ONE_OFF are not allowed to have a schedule")
             }
 
             if (thermalMonitor.status == ThermalMonitorStatus.INACTIVE) {
-                return@withCoroutineScope createBadRequest("Status INACTIVE is not allowed for singular monitors")
+                return@withCoroutineScope createBadRequest("Status INACTIVE is not allowed for ONE_OFF monitors")
             }
         }
 
@@ -133,7 +133,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
             return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
         }
 
-        thermalMonitorController.resolveSingularMonitorStatuses()
+        thermalMonitorController.resolveOneOffMonitorStatuses()
 
         thermalMonitorController.resolveScheduledMonitorStatuses()
 
@@ -145,13 +145,13 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
     override fun updateThermalMonitor(thermalMonitorId: UUID, thermalMonitor: ThermalMonitor): Uni<Response> = withCoroutineScope {
         loggedUserId ?: return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
 
-        if (thermalMonitor.monitorType == ThermalMonitorType.SINGULAR) {
+        if (thermalMonitor.monitorType == ThermalMonitorType.ONE_OFF) {
             if (thermalMonitor.schedule != null) {
-                return@withCoroutineScope createBadRequest("Monitors with monitorType SINGULAR are not allowed to have a schedule")
+                return@withCoroutineScope createBadRequest("Monitors with monitorType ONE_OFF are not allowed to have a schedule")
             }
 
             if (thermalMonitor.status == ThermalMonitorStatus.INACTIVE) {
-                return@withCoroutineScope createBadRequest("Status INACTIVE is not allowed for singular monitors")
+                return@withCoroutineScope createBadRequest("Status INACTIVE is not allowed for ONE_OFF monitors")
             }
         }
 

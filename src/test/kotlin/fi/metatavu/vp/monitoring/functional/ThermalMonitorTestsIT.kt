@@ -30,7 +30,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             thermometerIds = arrayOf(thermometer1, thermometer2),
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeFrom = activeFrom.toString(),
             activeTo = activeTo.toString()
         )
@@ -46,7 +46,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         assertEquals(2, created.thermometerIds.size, "Monitor creation should have returned monitor with 2 thermometerIds")
         assertNotNull(created.thermometerIds.find { thermometer -> thermometer == thermometer1 }, "Monitor creation did not return the same id for the first thermometer than what was entered")
         assertNotNull(created.thermometerIds.find { thermometer -> thermometer == thermometer2 }, "Monitor creation did not return the same id for the second thermometer than what was entered")
-        assertEquals(ThermalMonitorType.SINGULAR, created.monitorType, "Monitor creation should return monitor with monitorType SINGULAR")
+        assertEquals(ThermalMonitorType.ONE_OFF, created.monitorType, "Monitor creation should return monitor with monitorType ONE_OFF")
         it.user.thermalMonitors.assertCreateFail(403, thermalMonitor)
 
         it.manager.thermalMonitors.assertCreateFail(
@@ -55,7 +55,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
                 name = "Test",
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(),
-                monitorType = ThermalMonitorType.SINGULAR,
+                monitorType = ThermalMonitorType.ONE_OFF,
                 schedule = arrayOf()
             )
         )
@@ -85,7 +85,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             name = "test",
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
-            monitorType = ThermalMonitorType.SINGULAR
+            monitorType = ThermalMonitorType.ONE_OFF
         )
 
         val created = it.manager.thermalMonitors.create(thermalMonitor)
@@ -103,14 +103,14 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             name = "test",
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
-            monitorType = ThermalMonitorType.SINGULAR
+            monitorType = ThermalMonitorType.ONE_OFF
         )
 
         val thermalMonitor2 = ThermalMonitor(
             name = "test",
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
-            monitorType = ThermalMonitorType.SINGULAR
+            monitorType = ThermalMonitorType.ONE_OFF
         )
 
         val created = it.manager.thermalMonitors.create(thermalMonitor)
@@ -127,14 +127,14 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             name = "test",
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
-            monitorType = ThermalMonitorType.SINGULAR
+            monitorType = ThermalMonitorType.ONE_OFF
         )
 
         val thermalMonitor2 = ThermalMonitor(
             name = "test",
             status = ThermalMonitorStatus.PENDING,
             thermometerIds = arrayOf(),
-            monitorType = ThermalMonitorType.SINGULAR
+            monitorType = ThermalMonitorType.ONE_OFF
         )
 
         for (i in 0..9) {
@@ -182,7 +182,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             status = ThermalMonitorStatus.ACTIVE,
             thermometerIds = arrayOf(),
             activeFrom = time1.toString(),
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeTo = time2.toString()
         )
 
@@ -191,7 +191,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             status = ThermalMonitorStatus.PENDING,
             thermometerIds = arrayOf(),
             activeFrom = time2.toString(),
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeTo = time3.toString()
         )
 
@@ -200,7 +200,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             status = ThermalMonitorStatus.PENDING,
             thermometerIds = arrayOf(),
             activeFrom = time3.toString(),
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeTo = time4.toString()
         )
 
@@ -234,7 +234,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
             activeFrom = activeFrom.toString(),
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeTo = activeTo.toString()
         )
 
@@ -251,7 +251,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -100f,
             upperThresholdTemperature = 100f,
             activeFrom = activeFromNew.toString(),
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeTo = activeToNew.toString()
         )
 
@@ -300,7 +300,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
     }
 
     @Test
-    fun testSingularMonitorStatusResolve() = createTestBuilder().use {
+    fun testOneOffMonitorStatusResolve() = createTestBuilder().use {
         val activeFromNow = OffsetDateTime.now()
         val activeFromOneHour = OffsetDateTime.now().plusHours(1)
         val activeTo10Hours = OffsetDateTime.now().plusHours(10)
@@ -312,7 +312,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
             activeFrom = activeFromNow.toString(),
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeTo = activeTo10Hours.toString()
         )
 
@@ -323,7 +323,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
             activeFrom = activeFromOneHour.toString(),
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeTo = activeTo10Hours.toString()
         )
 
@@ -349,7 +349,7 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
             lowerThresholdTemperature = -50f,
             upperThresholdTemperature = 50f,
             activeFrom = activeFrom10HoursAgo.toString(),
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeTo = activeTo1HourAgo.toString()
         )
 

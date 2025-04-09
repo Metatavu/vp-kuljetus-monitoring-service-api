@@ -169,7 +169,7 @@
             <column name="monitortype" type="varchar(191)"/>
         </addColumn>
         <update tableName="thermalmonitor">
-            <column name="monitortype" value="SINGULAR"/>
+            <column name="monitortype" value="ONE_OFF"/>
         </update>
         <addNotNullConstraint tableName="thermalmonitor" columnName="monitortype" columnDataType="varchar(191)"/>
         <createTable tableName="thermalmonitorscheduleperiod">

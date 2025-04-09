@@ -164,27 +164,27 @@ class ThermalMonitorController {
     }
 
     /**
-     * Resolve statuses for singular monitors based on individual monitor's settings
+     * Resolve statuses for ONE_OFF monitors based on individual monitor's settings
      *
      *  - Set status to ACTIVE if monitor status is PENDING and monitor activeFrom is before now
      *  - Set status to FINISHED if monitor status is ACTIVE and monitor activeTo is before now
      */
-    suspend fun resolveSingularMonitorStatuses() {
+    suspend fun resolveOneOffMonitorStatuses() {
         list(
             status = ThermalMonitorStatus.PENDING,
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             toBeActivatedBefore = OffsetDateTime.now()
         ).forEach { thermalMonitorRepository.activateThermalMonitor(it) }
 
         list(
             status = ThermalMonitorStatus.ACTIVE,
-            monitorType = ThermalMonitorType.SINGULAR,
+            monitorType = ThermalMonitorType.ONE_OFF,
             activeBefore = OffsetDateTime.now()
         ).forEach { thermalMonitorRepository.finishThermalMonitor(it) }
     }
 
     /**
-     * Resolve statuses for scheduled monitors based on individual monitor's settings
+     * Resolve statuses for SCHEDULED monitors based on individual monitor's settings
      *
      *  - Set status to ACTIVE if monitor status is INACTIVE and monitor has a schedule period that is active right now
      *  - Set status to INACTIVE if monitor status is ACTIVE and monitor does not have any active schedule periods

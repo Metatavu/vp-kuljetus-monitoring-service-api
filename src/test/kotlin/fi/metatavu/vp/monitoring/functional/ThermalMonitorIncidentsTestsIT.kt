@@ -36,7 +36,7 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId, thermometer2Id),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -114,7 +114,7 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -205,7 +205,7 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId, thermometerId2),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -255,7 +255,7 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId3, thermometerId4),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -387,7 +387,7 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId, thermometerId2),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 

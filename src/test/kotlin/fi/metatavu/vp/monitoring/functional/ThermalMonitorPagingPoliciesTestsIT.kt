@@ -27,7 +27,7 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
                 thermometerIds = arrayOf(),
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -81,7 +81,7 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
                 thermometerIds = arrayOf(),
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -136,7 +136,7 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
                 thermometerIds = arrayOf(),
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -194,7 +194,7 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
                 thermometerIds = arrayOf(),
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -278,7 +278,7 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
                 thermometerIds = arrayOf(),
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -329,7 +329,7 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
                 thermometerIds = arrayOf(),
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 

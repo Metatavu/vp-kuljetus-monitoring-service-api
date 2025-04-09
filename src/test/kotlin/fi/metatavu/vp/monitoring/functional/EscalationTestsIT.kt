@@ -39,7 +39,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -106,7 +106,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -180,7 +180,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -253,7 +253,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -317,7 +317,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -381,7 +381,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
                 upperThresholdTemperature = 50f,
-                monitorType = ThermalMonitorType.SINGULAR
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 

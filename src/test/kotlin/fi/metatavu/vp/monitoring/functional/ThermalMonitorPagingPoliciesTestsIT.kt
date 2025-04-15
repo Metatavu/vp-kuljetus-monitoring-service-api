@@ -26,7 +26,8 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
             ThermalMonitor(
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
-                thermometerIds = arrayOf()
+                thermometerIds = arrayOf(),
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -79,7 +80,8 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
             ThermalMonitor(
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
-                thermometerIds = arrayOf()
+                thermometerIds = arrayOf(),
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -133,7 +135,8 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
             ThermalMonitor(
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
-                thermometerIds = arrayOf()
+                thermometerIds = arrayOf(),
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -190,7 +193,8 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
             ThermalMonitor(
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
-                thermometerIds = arrayOf()
+                thermometerIds = arrayOf(),
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -273,7 +277,8 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
             ThermalMonitor(
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
-                thermometerIds = arrayOf()
+                thermometerIds = arrayOf(),
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -323,7 +328,8 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
             ThermalMonitor(
                 name = "Test",
                 status = ThermalMonitorStatus.PENDING,
-                thermometerIds = arrayOf()
+                thermometerIds = arrayOf(),
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 

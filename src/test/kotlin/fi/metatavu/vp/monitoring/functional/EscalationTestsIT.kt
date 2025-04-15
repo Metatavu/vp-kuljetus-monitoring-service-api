@@ -38,7 +38,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -104,7 +105,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -177,7 +179,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -249,7 +252,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -312,7 +316,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 
@@ -375,7 +380,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 status = ThermalMonitorStatus.ACTIVE,
                 thermometerIds = arrayOf(thermometerId),
                 lowerThresholdTemperature = -50f,
-                upperThresholdTemperature = 50f
+                upperThresholdTemperature = 50f,
+                monitorType = ThermalMonitorType.ONE_OFF
             )
         )
 

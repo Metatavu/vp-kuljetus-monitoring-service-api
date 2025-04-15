@@ -4,6 +4,7 @@ import fi.metatavu.vp.api.model.ThermalMonitor
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
 import fi.metatavu.vp.monitoring.persistence.AbstractRepository
 import io.quarkus.panache.common.Parameters
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import jakarta.enterprise.context.ApplicationScoped
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -23,6 +24,7 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
      * @param thresholdHigh
      * @param activeFrom
      * @param activeTo
+     * @param monitorType
      */
     suspend fun create(
         name: String,
@@ -31,7 +33,8 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         thresholdLow: Float?,
         thresholdHigh: Float?,
         activeFrom: OffsetDateTime?,
-        activeTo: OffsetDateTime?
+        activeTo: OffsetDateTime?,
+        monitorType: String
     ): ThermalMonitorEntity {
         val monitor = ThermalMonitorEntity()
         monitor.id = UUID.randomUUID()
@@ -43,6 +46,7 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         monitor.thresholdHigh = thresholdHigh
         monitor.activeFrom = activeFrom
         monitor.activeTo = activeTo
+        monitor.monitorType = monitorType
         return persistSuspending(monitor)
     }
 
@@ -52,6 +56,8 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
      * @param status
      * @param activeAfter
      * @param activeBefore
+     * @param toBeActivatedBefore
+     * @param monitorType
      * @param first
      * @param max
      */
@@ -60,6 +66,7 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         activeAfter: OffsetDateTime?,
         activeBefore: OffsetDateTime?,
         toBeActivatedBefore: OffsetDateTime?,
+        monitorType: String?,
         first: Int?,
         max: Int?
     ): Pair<List<ThermalMonitorEntity>, Long> {
@@ -86,6 +93,11 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
             parameters.and("toBeActivatedBefore", toBeActivatedBefore)
         }
 
+        if (monitorType != null) {
+            addCondition(queryBuilder, "monitorType = :monitorType")
+            parameters.and("monitorType", monitorType)
+        }
+
         return applyFirstMaxToQuery(find(queryBuilder.toString(), parameters), firstIndex = first, maxResults = max)
     }
 
@@ -100,12 +112,12 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         val updated = thermalMonitorEntity
         updated.name = thermalMonitor.name
         updated.status = thermalMonitor.status.toString()
-        updated.creatorId = thermalMonitor.creatorId!!
         updated.lastModifierId = modifier
         updated.thresholdLow = thermalMonitor.lowerThresholdTemperature
         updated.thresholdHigh = thermalMonitor.upperThresholdTemperature
         updated.activeFrom = thermalMonitor.activeFrom
         updated.activeTo = thermalMonitor.activeTo
+        updated.monitorType = thermalMonitor.monitorType.toString()
 
         return persistSuspending(updated)
     }
@@ -130,5 +142,43 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
     suspend fun finishThermalMonitor(thermalMonitorEntity: ThermalMonitorEntity): ThermalMonitorEntity {
         thermalMonitorEntity.status = ThermalMonitorStatus.FINISHED.toString()
         return persistSuspending(thermalMonitorEntity)
+    }
+
+    /**
+     * Deactivate a thermal monitor
+     * This is used by the cron job that changes monitor statuses based on monitor settings
+     *
+     * @param thermalMonitorEntity
+     */
+    suspend fun deactivateThermalMonitor(thermalMonitorEntity: ThermalMonitorEntity): ThermalMonitorEntity {
+        thermalMonitorEntity.status = ThermalMonitorStatus.INACTIVE.toString()
+        return persistSuspending(thermalMonitorEntity)
+    }
+
+    /**
+     * List thermal monitors of type "SCHEDULED" and status "ACTIVE" that do not have any active schedules at the current time
+     *
+     * @param currentTime
+     */
+    suspend fun listScheduledActiveMonitorsWithoutActiveSchedules(currentTime: OffsetDateTime): List<ThermalMonitorEntity> {
+        val query = """
+                SELECT tm FROM ThermalMonitorEntity tm
+                WHERE tm.monitorType = 'SCHEDULED'
+                AND tm.status = 'ACTIVE'
+                AND NOT EXISTS (
+                    SELECT 1 FROM ThermalMonitorSchedulePeriodEntity sp
+                    WHERE sp.thermalMonitor = tm
+                    AND (
+                        (sp.startWeekDay < :currentWeekDay OR (sp.startWeekDay = :currentWeekDay AND (sp.startHour < :currentHour OR (sp.startHour = :currentHour AND sp.startMinute <= :currentMinute))))
+                        AND
+                        (sp.endWeekDay > :currentWeekDay OR (sp.endWeekDay = :currentWeekDay AND (sp.endHour > :currentHour OR (sp.endHour = :currentHour AND sp.endMinute >= :currentMinute))))
+                    )
+                )
+            """
+        val parameters = Parameters.with("currentWeekDay", currentTime.dayOfWeek.value - 1)
+            .and("currentHour", currentTime.hour)
+            .and("currentMinute", currentTime.minute)
+
+        return find(query, parameters).list<ThermalMonitorEntity>().awaitSuspending()
     }
 }

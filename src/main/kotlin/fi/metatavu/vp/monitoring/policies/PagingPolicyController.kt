@@ -30,7 +30,6 @@ class PagingPolicyController {
     /**
      * Save a thermal monitor paging policy to the database
      *
-     * @param policyType
      * @param priority
      * @param escalationSeconds
      * @param pagingPolicyContact
@@ -38,7 +37,6 @@ class PagingPolicyController {
      * @param creatorId
      */
     suspend fun create(
-        policyType: PagingPolicyType,
         priority: Int,
         escalationSeconds: Int,
         pagingPolicyContact: PagingPolicyContactEntity,
@@ -46,7 +44,6 @@ class PagingPolicyController {
         creatorId: UUID
     ): ThermalMonitorPagingPolicyEntity {
         return pagingPolicyRepository.create(
-            policyType = policyType.toString(),
             priority = priority,
             escalationSeconds = escalationSeconds,
             pagingPolicyContact = pagingPolicyContact,
@@ -111,7 +108,6 @@ class PagingPolicyController {
      * Update policy data in the database
      *
      * @param entityToUpdate
-     * @param policyType
      * @param priority
      * @param escalationDelaySeconds
      * @param pagingPolicyContact
@@ -119,7 +115,6 @@ class PagingPolicyController {
      */
     suspend fun update(
         entityToUpdate: ThermalMonitorPagingPolicyEntity,
-        policyType: PagingPolicyType,
         priority: Int,
         escalationDelaySeconds: Int,
         pagingPolicyContact: PagingPolicyContactEntity,
@@ -127,7 +122,6 @@ class PagingPolicyController {
     ): ThermalMonitorPagingPolicyEntity {
         return pagingPolicyRepository.update(
             entityToUpdate = entityToUpdate,
-            policyType = policyType.toString(),
             priority = priority,
             escalationDelaySeconds = escalationDelaySeconds,
             pagingPolicyContact = pagingPolicyContact,
@@ -163,9 +157,9 @@ class PagingPolicyController {
         }
 
         if (trigger) {
-            when (PagingPolicyType.valueOf(nextPolicy.policyType)) {
+            when (PagingPolicyType.valueOf(nextPolicy.pagingPolicyContact.contactType)) {
                 PagingPolicyType.EMAIL -> {
-                    val receiverEmail = nextPolicy.pagingPolicyContact.email
+                    val receiverEmail = nextPolicy.pagingPolicyContact.contact
                     if (receiverEmail != null) {
                         val subject = "Hälytys: ${incident.thermalMonitor.name}"
                         val content = constructMessage(incident)

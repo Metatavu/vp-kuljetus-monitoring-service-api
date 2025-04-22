@@ -1,12 +1,8 @@
 package fi.metatavu.vp.monitoring.policies.contacts
 
 import fi.metatavu.vp.api.model.PagingPolicyContact
-import fi.metatavu.vp.api.model.ThermalMonitorStatus
-import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.persistence.AbstractRepository
-import io.quarkus.panache.common.Parameters
 import jakarta.enterprise.context.ApplicationScoped
-import java.time.OffsetDateTime
 import java.util.*
 
 @ApplicationScoped
@@ -16,14 +12,16 @@ class PagingPolicyContactRepository: AbstractRepository<PagingPolicyContactEntit
      * Save a paging policy contact to the database
      *
      * @param name
-     * @param email
+     * @param contactType
+     * @param contactValue
      * @param creatorId
      */
-    suspend fun create(name: String?, email: String?, creatorId: UUID): PagingPolicyContactEntity {
+    suspend fun create(name: String, contactType: String, contactValue: String, creatorId: UUID): PagingPolicyContactEntity {
         val contact = PagingPolicyContactEntity()
         contact.id = UUID.randomUUID()
+        contact.contactType = contactType
         contact.contactName = name
-        contact.email = email
+        contact.contact = contactValue
         contact.creatorId = creatorId
         contact.lastModifierId = creatorId
 
@@ -42,7 +40,8 @@ class PagingPolicyContactRepository: AbstractRepository<PagingPolicyContactEntit
         entityFromRest: PagingPolicyContact,
         modifierId: UUID
     ): PagingPolicyContactEntity {
-        entityToUpdate.email = entityFromRest.email
+        entityToUpdate.contact = entityFromRest.contact
+        entityToUpdate.contactType = entityFromRest.type.toString()
         entityToUpdate.contactName = entityFromRest.name
         entityToUpdate.lastModifierId = modifierId
 

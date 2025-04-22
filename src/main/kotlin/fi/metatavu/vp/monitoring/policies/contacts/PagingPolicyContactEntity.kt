@@ -5,6 +5,7 @@ import jakarta.persistence.Table
 import fi.metatavu.vp.monitoring.persistence.Metadata
 import jakarta.persistence.Column
 import jakarta.persistence.Id
+import jakarta.validation.constraints.NotEmpty
 import java.util.*
 
 @Entity
@@ -14,10 +15,16 @@ class PagingPolicyContactEntity: Metadata() {
     lateinit var id: UUID
 
     @Column
-    var contactName: String? = null
+    @NotEmpty
+    lateinit var contactName: String
 
     @Column
-    var email: String? = null
+    @NotEmpty
+    lateinit var contact: String
+
+    @Column
+    @NotEmpty
+    lateinit var contactType: String
 
     override lateinit var creatorId: UUID
 

@@ -1,6 +1,7 @@
 package fi.metatavu.vp.monitoring.policies.contacts
 
 import fi.metatavu.vp.api.model.PagingPolicyContact
+import fi.metatavu.vp.api.model.PagingPolicyType
 import fi.metatavu.vp.monitoring.policies.PagingPolicyController
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
@@ -19,14 +20,16 @@ class PagingPolicyContactController {
      * Save a paging policy contact to the database
      *
      * @param name
-     * @param email
+     * @param contactType
+     * @param contact
      * @param creatorId
      */
-    suspend fun create(name: String?, email: String?, creatorId: UUID): PagingPolicyContactEntity {
+    suspend fun create(name: String, contactType: PagingPolicyType, contact: String, creatorId: UUID): PagingPolicyContactEntity {
         return pagingPolicyContactRepository.create(
             name = name,
-            email = email,
-            creatorId = creatorId
+            contactValue = contact,
+            creatorId = creatorId,
+            contactType = contactType.toString()
         )
     }
 

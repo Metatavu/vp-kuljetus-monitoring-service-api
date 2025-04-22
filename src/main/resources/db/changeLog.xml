@@ -199,4 +199,15 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="move-contact-type-to-contact" author="Simeon Platonov">
+        <dropColumn tableName="thermalmonitorpagingpolicy" columnName="policytype"/>
+        <addColumn tableName="pagingpolicycontact">
+            <column name="contacttype" type="varchar(191)"/>
+        </addColumn>
+        <update tableName="pagingpolicycontact">
+            <column name="contacttype" value="EMAIL"/>
+        </update>
+        <addNotNullConstraint tableName="pagingpolicycontact" columnName="contacttype" columnDataType="varchar(191)"/>
+        <renameColumn tableName="pagingpolicycontact" oldColumnName="email" newColumnName="contact" columnDataType="varchar(191)"/>
+    </changeSet>
 </databaseChangeLog>

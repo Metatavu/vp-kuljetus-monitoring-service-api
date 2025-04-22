@@ -58,7 +58,6 @@ class ThermalMonitorPagingPoliciesApiImpl: ThermalMonitorPagingPoliciesApi, Abst
         createOk(pagingPolicyTranslator.translate(pagingPolicyController.create(
             thermalMonitor = thermalMonitor,
             pagingPolicyContact = pagingPolicyContact,
-            policyType = thermalMonitorPagingPolicy.type,
             priority = thermalMonitorPagingPolicy.priority,
             escalationSeconds = thermalMonitorPagingPolicy.escalationDelaySeconds,
             creatorId = loggedUserId!!
@@ -145,7 +144,6 @@ class ThermalMonitorPagingPoliciesApiImpl: ThermalMonitorPagingPoliciesApi, Abst
 
         createOk(pagingPolicyTranslator.translate(pagingPolicyController.update(
             entityToUpdate = policy,
-            policyType = thermalMonitorPagingPolicy.type,
             priority = thermalMonitorPagingPolicy.priority,
             escalationDelaySeconds = thermalMonitorPagingPolicy.escalationDelaySeconds,
             pagingPolicyContact = pagingPolicyContact,

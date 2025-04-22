@@ -15,7 +15,6 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
     /**
      * Save a thermal monitor paging policy to the database
      *
-     * @param policyType
      * @param priority
      * @param escalationSeconds
      * @param pagingPolicyContact
@@ -23,7 +22,6 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
      * @param creatorId
      */
     suspend fun create(
-        policyType: String,
         priority: Int,
         escalationSeconds: Int,
         pagingPolicyContact: PagingPolicyContactEntity,
@@ -33,7 +31,6 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
         val policy = ThermalMonitorPagingPolicyEntity()
 
         policy.id = UUID.randomUUID()
-        policy.policyType = policyType
         policy.priority = priority
         policy.escalationDelaySeconds = escalationSeconds
         policy.thermalMonitor = thermalMonitor
@@ -114,7 +111,6 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
      * Update policy data in the database
      *
      * @param entityToUpdate
-     * @param policyType
      * @param priority
      * @param escalationDelaySeconds
      * @param pagingPolicyContact
@@ -122,13 +118,11 @@ class PagingPolicyRepository: AbstractRepository<ThermalMonitorPagingPolicyEntit
      */
     suspend fun update(
         entityToUpdate: ThermalMonitorPagingPolicyEntity,
-        policyType: String,
         priority: Int,
         escalationDelaySeconds: Int,
         pagingPolicyContact: PagingPolicyContactEntity,
         modifierId: UUID
     ): ThermalMonitorPagingPolicyEntity {
-        entityToUpdate.policyType  = policyType
         entityToUpdate.priority = priority
         entityToUpdate.escalationDelaySeconds = escalationDelaySeconds
         entityToUpdate.pagingPolicyContact = pagingPolicyContact

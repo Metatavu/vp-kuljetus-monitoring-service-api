@@ -1,6 +1,7 @@
 package fi.metatavu.vp.monitoring.policies.contacts
 
 import fi.metatavu.vp.api.model.PagingPolicyContact
+import fi.metatavu.vp.api.model.PagingPolicyType
 import fi.metatavu.vp.usermanagement.rest.AbstractTranslator
 import jakarta.enterprise.context.ApplicationScoped
 
@@ -16,7 +17,8 @@ class PagingPolicyContactTranslator: AbstractTranslator<PagingPolicyContactEntit
         return PagingPolicyContact(
             id = entity.id,
             name = entity.contactName,
-            email = entity.email
+            contact = entity.contact,
+            type = PagingPolicyType.valueOf(entity.contactType)
         )
     }
 

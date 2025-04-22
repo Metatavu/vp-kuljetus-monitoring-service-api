@@ -2,6 +2,7 @@ package fi.metatavu.vp.monitoring.functional
 
 import fi.metatavu.vp.monitoring.functional.settings.DefaultTestProfile
 import fi.metatavu.vp.test.client.models.PagingPolicyContact
+import fi.metatavu.vp.test.client.models.PagingPolicyType
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -20,14 +21,16 @@ class PagingPolicyContactTestsIT: AbstractFunctionalTest() {
     fun testCreatePagingPolicyContact() = createTestBuilder().use {
         val pagingPolicyContact = PagingPolicyContact(
             name = "Name",
-            email = "name@domain.com"
+            contact = "name@domain.com",
+            type = PagingPolicyType.EMAIL
         )
 
         val created = it.manager.pagingPolicyContacts.create(pagingPolicyContact)
 
         assertNotNull(created.id, "Created paging policy contact should have an id")
-        assertEquals("Name", pagingPolicyContact.name, "Created paging policy name should be 'Name'")
-        assertEquals("name@domain.com", pagingPolicyContact.email, "Created paging policy email should be 'name@domain.com'")
+        assertEquals("Name", pagingPolicyContact.name, "Created paging policy contact name should be 'Name'")
+        assertEquals("name@domain.com", pagingPolicyContact.contact, "Created paging policy contact email should be 'name@domain.com'")
+        assertEquals(PagingPolicyType.EMAIL, pagingPolicyContact.type, "Created paging policy contact type should be 'EMAIL'")
 
         it.user.pagingPolicyContacts.assertCreateFail(403, pagingPolicyContact)
     }
@@ -36,7 +39,8 @@ class PagingPolicyContactTestsIT: AbstractFunctionalTest() {
     fun testFindPagingPolicyContact() = createTestBuilder().use {
         val pagingPolicyContact = PagingPolicyContact(
             name = "Name",
-            email = "name@domain.com"
+            contact = "name@domain.com",
+            type = PagingPolicyType.EMAIL
         )
 
         val created = it.manager.pagingPolicyContacts.create(pagingPolicyContact)
@@ -51,7 +55,8 @@ class PagingPolicyContactTestsIT: AbstractFunctionalTest() {
     fun testDeletePagingPolicyContact() = createTestBuilder().use {
         val pagingPolicyContact = PagingPolicyContact(
             name = "Name",
-            email = "name@domain.com"
+            contact = "name@domain.com",
+            type = PagingPolicyType.EMAIL
         )
 
         val created = it.manager.pagingPolicyContacts.create(pagingPolicyContact)
@@ -65,16 +70,17 @@ class PagingPolicyContactTestsIT: AbstractFunctionalTest() {
     fun testUpdatePagingPolicyContact() = createTestBuilder().use {
         val pagingPolicyContact = PagingPolicyContact(
             name = "Name",
-            email = "name@domain.com"
+            contact = "name@domain.com",
+            type = PagingPolicyType.EMAIL
         )
 
         val created = it.manager.pagingPolicyContacts.create(pagingPolicyContact)
-        val newData = created.copy(name = "Nimi", email = "nimi@osoite.fi")
+        val newData = created.copy(name = "Nimi", contact = "nimi@osoite.fi")
         val updated = it.manager.pagingPolicyContacts.update(created.id!!, newData)
 
         assertEquals(created.id, updated.id, "Id should stay the same after paging policy contact entity has been updated")
         assertEquals("Nimi", updated.name, "The updated paging policy contact name should be 'Nimi'")
-        assertEquals("nimi@osoite.fi", updated.email, "The updated paging policy contact email should be 'nimi@osoite.fi'")
+        assertEquals("nimi@osoite.fi", updated.contact, "The updated paging policy contact email should be 'nimi@osoite.fi'")
 
         it.user.pagingPolicyContacts.assertUpdateFail(403, created.id, newData)
         it.manager.pagingPolicyContacts.assertUpdateFail(404, UUID.randomUUID(), newData)
@@ -84,7 +90,8 @@ class PagingPolicyContactTestsIT: AbstractFunctionalTest() {
     fun testListPagingPolicyContacts() = createTestBuilder().use {
         val pagingPolicyContact = PagingPolicyContact(
             name = "Name",
-            email = "name@domain.com"
+            contact = "name@domain.com",
+            type = PagingPolicyType.EMAIL
         )
 
         for (i in 0..14) {

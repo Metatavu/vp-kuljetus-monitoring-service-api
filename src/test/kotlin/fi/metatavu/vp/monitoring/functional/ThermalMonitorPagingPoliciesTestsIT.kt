@@ -18,8 +18,9 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
     @Test
     fun testCreatePagingPolicyIT() = createTestBuilder().use {
         val contact =  it.manager.pagingPolicyContacts.create(PagingPolicyContact(
-            email = "test@domain.com",
-            name = "Test"
+            contact = "test@domain.com",
+            name = "Test",
+            type = PagingPolicyType.EMAIL
         ))
 
         val monitor = it.manager.thermalMonitors.create(
@@ -32,7 +33,6 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
         )
 
         val policy = ThermalMonitorPagingPolicy(
-            type = PagingPolicyType.EMAIL,
             contactId = contact.id!!,
             priority = 1,
             escalationDelaySeconds = 60,
@@ -44,7 +44,6 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
             policy = policy
         )
 
-        assertEquals(PagingPolicyType.EMAIL, created.type, "Created policy type should be EMAIL")
         assertEquals(monitor.id, created.thermalMonitorId, "Created policy monitor id should be the same as entered monitor id")
         assertEquals(contact.id, created.contactId, "Created policy contact id should be the same as entered contact id")
         assertEquals(1, created.priority, "Created policy priority should be 1")
@@ -72,8 +71,9 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
     @Test
     fun testFindPagingPolicyIT() = createTestBuilder().use {
         val contact = it.manager.pagingPolicyContacts.create(PagingPolicyContact(
-            email = "test@domain.com",
-            name = "Test"
+            contact = "test@domain.com",
+            name = "Test",
+            type = PagingPolicyType.EMAIL
         ))
 
         val monitor = it.manager.thermalMonitors.create(
@@ -86,7 +86,6 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
         )
 
         val policy = ThermalMonitorPagingPolicy(
-            type = PagingPolicyType.EMAIL,
             contactId = contact.id!!,
             priority = 1,
             escalationDelaySeconds = 60,
@@ -127,8 +126,9 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
     @Test
     fun testDeletePagingPolicyIT() = createTestBuilder().use {
         val contact =  it.manager.pagingPolicyContacts.create(PagingPolicyContact(
-            email = "test@domain.com",
-            name = "Test"
+            contact = "test@domain.com",
+            name = "Test",
+            type = PagingPolicyType.EMAIL
         ))
 
         val monitor = it.manager.thermalMonitors.create(
@@ -141,7 +141,6 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
         )
 
         val policy = ThermalMonitorPagingPolicy(
-            type = PagingPolicyType.EMAIL,
             contactId = contact.id!!,
             priority = 1,
             escalationDelaySeconds = 60,
@@ -180,13 +179,15 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
     @Test
     fun testUpdatePagingPolicyTestIT() = createTestBuilder().use {
         val contact = it.manager.pagingPolicyContacts.create(PagingPolicyContact(
-            email = "test@domain.com",
-            name = "Test"
+            contact = "test@domain.com",
+            name = "Test",
+            type = PagingPolicyType.EMAIL
         ))
 
         val contact2 = it.manager.pagingPolicyContacts.create(PagingPolicyContact(
-            email = "testi@domain.fi",
-            name = "Testi"
+            contact = "testi@domain.fi",
+            name = "Testi",
+            type = PagingPolicyType.EMAIL
         ))
 
         val monitor = it.manager.thermalMonitors.create(
@@ -199,7 +200,6 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
         )
 
         val policy = ThermalMonitorPagingPolicy(
-            type = PagingPolicyType.EMAIL,
             contactId = contact.id!!,
             priority = 1,
             escalationDelaySeconds = 60,
@@ -269,8 +269,9 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
     @Test
     fun testListPagingPoliciesIT() = createTestBuilder().use {
         val contact =  it.manager.pagingPolicyContacts.create(PagingPolicyContact(
-            email = "test@domain.com",
-            name = "Test"
+            contact = "test@domain.com",
+            name = "Test",
+            type = PagingPolicyType.EMAIL
         ))
 
         val monitor = it.manager.thermalMonitors.create(
@@ -283,7 +284,6 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
         )
 
         val policy = ThermalMonitorPagingPolicy(
-            type = PagingPolicyType.EMAIL,
             contactId = contact.id!!,
             priority = 1,
             escalationDelaySeconds = 60,
@@ -334,7 +334,6 @@ class ThermalMonitorPagingPoliciesTestsIT: AbstractFunctionalTest() {
         )
 
         val policy2 = ThermalMonitorPagingPolicy(
-            type = PagingPolicyType.EMAIL,
             contactId = contact.id,
             priority = 1,
             escalationDelaySeconds = 60,

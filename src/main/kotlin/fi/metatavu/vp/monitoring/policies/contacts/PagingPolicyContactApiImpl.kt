@@ -9,7 +9,6 @@ import io.smallrye.mutiny.Uni
 import jakarta.annotation.security.RolesAllowed
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
-import jakarta.transaction.Transactional
 import jakarta.ws.rs.core.Response
 import java.util.*
 
@@ -31,8 +30,9 @@ class PagingPolicyContactApiImpl : PagingPolicyContactsApi, AbstractApi() {
 
         val contactEntity = pagingPolicyContactController.create(
             name = pagingPolicyContact.name,
-            email = pagingPolicyContact.email,
-            creatorId = loggedUserId!!
+            contact = pagingPolicyContact.contact,
+            creatorId = loggedUserId!!,
+            contactType = pagingPolicyContact.type
         )
 
         createOk(pagingPolicyContactTranslator.translate(contactEntity))

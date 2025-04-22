@@ -46,7 +46,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         val policyContact = it.manager.pagingPolicyContacts.create(
             PagingPolicyContact(
                 name = "Name",
-                email = "test@example.com"
+                contact = "test@example.com",
+                type = PagingPolicyType.EMAIL
             )
         )
 
@@ -56,7 +57,6 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 contactId = policyContact.id!!,
                 escalationDelaySeconds = 0,
                 priority = 1,
-                type = PagingPolicyType.EMAIL,
                 thermalMonitorId = monitor.id
             )
         )
@@ -113,7 +113,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         val policyContact = it.manager.pagingPolicyContacts.create(
             PagingPolicyContact(
                 name = "Name",
-                email = "test@example.com"
+                contact = "test@example.com",
+                type = PagingPolicyType.EMAIL
             )
         )
 
@@ -123,7 +124,6 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 contactId = policyContact.id!!,
                 escalationDelaySeconds = 0,
                 priority = 1,
-                type = PagingPolicyType.EMAIL,
                 thermalMonitorId = monitor.id
             )
         )
@@ -134,7 +134,6 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 contactId = policyContact.id,
                 escalationDelaySeconds = 10,
                 priority = 1,
-                type = PagingPolicyType.EMAIL,
                 thermalMonitorId = monitor.id
             )
         )
@@ -187,7 +186,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         val policyContact = it.manager.pagingPolicyContacts.create(
             PagingPolicyContact(
                 name = "Name",
-                email = "test@example.com"
+                contact = "test@example.com",
+                type = PagingPolicyType.EMAIL
             )
         )
 
@@ -197,7 +197,6 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 contactId = policyContact.id!!,
                 escalationDelaySeconds = 0,
                 priority = 1,
-                type = PagingPolicyType.EMAIL,
                 thermalMonitorId = monitor.id
             )
         )
@@ -208,7 +207,6 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 contactId = policyContact.id,
                 escalationDelaySeconds = 5,
                 priority = 1,
-                type = PagingPolicyType.EMAIL,
                 thermalMonitorId = monitor.id
             )
         )
@@ -260,7 +258,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         val policyContact = it.manager.pagingPolicyContacts.create(
             PagingPolicyContact(
                 name = "Name",
-                email = "test@example.com"
+                contact = "test@example.com",
+                type = PagingPolicyType.EMAIL
             )
         )
 
@@ -270,7 +269,6 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 contactId = policyContact.id!!,
                 escalationDelaySeconds = 0,
                 priority = 1,
-                type = PagingPolicyType.EMAIL,
                 thermalMonitorId = monitor.id
             )
         )
@@ -324,7 +322,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         val policyContact = it.manager.pagingPolicyContacts.create(
             PagingPolicyContact(
                 name = "Nimi",
-                email = "testi@testi.fi"
+                contact = "testi@testi.fi",
+                type = PagingPolicyType.EMAIL
             )
         )
 
@@ -334,7 +333,6 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 contactId = policyContact.id!!,
                 escalationDelaySeconds = 0,
                 priority = 1,
-                type = PagingPolicyType.EMAIL,
                 thermalMonitorId = monitor.id
             )
         )
@@ -388,7 +386,8 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         val policyContact = it.manager.pagingPolicyContacts.create(
             PagingPolicyContact(
                 name = "Nimi",
-                email = "testi@testi.fi"
+                contact = "testi@testi.fi",
+                type = PagingPolicyType.EMAIL
             )
         )
 
@@ -398,7 +397,6 @@ class EscalationTestsIT: AbstractFunctionalTest() {
                 contactId = policyContact.id!!,
                 escalationDelaySeconds = 0,
                 priority = 1,
-                type = PagingPolicyType.EMAIL,
                 thermalMonitorId = monitor.id
             )
         )

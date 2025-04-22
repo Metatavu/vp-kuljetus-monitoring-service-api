@@ -17,10 +17,6 @@ class ThermalMonitorPagingPolicyEntity: Metadata() {
     @Id
     lateinit var id: UUID
 
-    @Column
-    @NotEmpty
-    lateinit var policyType: String
-
     @Column(nullable = false)
     var priority: Int? = null
 

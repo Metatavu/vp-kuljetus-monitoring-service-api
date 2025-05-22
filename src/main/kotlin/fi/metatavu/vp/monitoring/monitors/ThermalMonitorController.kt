@@ -133,6 +133,13 @@ class ThermalMonitorController {
     }
 
     /**
+     * List ONE_OFF thermal monitors to be activated
+     */
+    suspend fun listOneOffMonitorsToBeActivated(): List<ThermalMonitorEntity> {
+        return thermalMonitorRepository.listOneOffThermalMonitorsToBeActivated()
+    }
+
+    /**
      * Update thermal monitor
      *
      * @param thermalMonitor updated data
@@ -170,11 +177,9 @@ class ThermalMonitorController {
      *  - Set status to FINISHED if monitor status is ACTIVE and monitor activeTo is before now
      */
     suspend fun resolveOneOffMonitorStatuses() {
-        list(
-            status = ThermalMonitorStatus.PENDING,
-            monitorType = ThermalMonitorType.ONE_OFF,
-            toBeActivatedBefore = OffsetDateTime.now()
-        ).forEach { thermalMonitorRepository.activateThermalMonitor(it) }
+        listOneOffMonitorsToBeActivated().forEach {
+            thermalMonitorRepository.activateThermalMonitor(it)
+        }
 
         list(
             status = ThermalMonitorStatus.ACTIVE,

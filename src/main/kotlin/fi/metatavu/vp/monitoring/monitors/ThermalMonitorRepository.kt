@@ -78,14 +78,14 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
             parameters.and("status", status.toString())
         }
 
-        if (activeAfter != null) {
-            addCondition(queryBuilder, "activeFrom > :activeAfter")
-            parameters.and("activeAfter", activeAfter)
-        }
-
         if (activeBefore != null) {
             addCondition(queryBuilder, "activeTo < :activeBefore")
             parameters.and("activeBefore", activeBefore)
+        }
+
+        if (activeAfter != null) {
+            addCondition(queryBuilder, "activeFrom > :activeAfter")
+            parameters.and("activeAfter", activeAfter)
         }
 
         if (toBeActivatedBefore != null)  {
@@ -99,6 +99,21 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         }
 
         return applyFirstMaxToQuery(find(queryBuilder.toString(), parameters), firstIndex = first, maxResults = max)
+    }
+
+    /**
+     * List ONE_OFF thermal monitors to be activated
+     */
+    suspend fun listOneOffThermalMonitorsToBeActivated(): List<ThermalMonitorEntity> {
+        val query = """
+            SELECT tm FROM ThermalMonitorEntity tm
+            WHERE tm.monitorType = 'ONE_OFF'
+            AND tm.status = 'PENDING'
+            AND (tm.activeFrom < :toBeActivatedBefore OR tm.activeFrom IS NULL)
+        """
+        val parameters = Parameters.with("toBeActivatedBefore", OffsetDateTime.now())
+
+        return find(query, parameters).list<ThermalMonitorEntity>().awaitSuspending()
     }
 
     /**

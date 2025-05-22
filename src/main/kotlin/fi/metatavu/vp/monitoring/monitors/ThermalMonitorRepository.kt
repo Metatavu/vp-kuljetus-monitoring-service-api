@@ -67,6 +67,7 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         activeBefore: OffsetDateTime?,
         toBeActivatedBefore: OffsetDateTime?,
         monitorType: String?,
+        activeFromIsNull: Boolean,
         first: Int?,
         max: Int?
     ): Pair<List<ThermalMonitorEntity>, Long> {
@@ -78,19 +79,23 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
             parameters.and("status", status.toString())
         }
 
-        if (activeAfter != null) {
-            addCondition(queryBuilder, "activeFrom > :activeAfter")
-            parameters.and("activeAfter", activeAfter)
-        }
-
         if (activeBefore != null) {
             addCondition(queryBuilder, "activeTo < :activeBefore")
             parameters.and("activeBefore", activeBefore)
         }
 
-        if (toBeActivatedBefore != null)  {
-            addCondition(queryBuilder, "activeFrom < :toBeActivatedBefore")
-            parameters.and("toBeActivatedBefore", toBeActivatedBefore)
+        if (activeFromIsNull) {
+            addCondition(queryBuilder, "activeFrom IS NULL")
+        } else {
+            if (activeAfter != null) {
+                addCondition(queryBuilder, "activeFrom > :activeAfter")
+                parameters.and("activeAfter", activeAfter)
+            }
+
+            if (toBeActivatedBefore != null)  {
+                addCondition(queryBuilder, "activeFrom < :toBeActivatedBefore")
+                parameters.and("toBeActivatedBefore", toBeActivatedBefore)
+            }
         }
 
         if (monitorType != null) {

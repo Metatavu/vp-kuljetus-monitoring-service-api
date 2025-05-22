@@ -101,6 +101,9 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         return applyFirstMaxToQuery(find(queryBuilder.toString(), parameters), firstIndex = first, maxResults = max)
     }
 
+    /**
+     * List ONE_OFF thermal monitors to be activated
+     */
     suspend fun listOneOffThermalMonitorsToBeActivated(): List<ThermalMonitorEntity> {
         val query = """
             SELECT tm FROM ThermalMonitorEntity tm

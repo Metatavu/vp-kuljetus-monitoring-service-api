@@ -132,6 +132,9 @@ class ThermalMonitorController {
         ).first
     }
 
+    /**
+     * List ONE_OFF thermal monitors to be activated
+     */
     suspend fun listOneOffMonitorsToBeActivated(): List<ThermalMonitorEntity> {
         return thermalMonitorRepository.listOneOffThermalMonitorsToBeActivated()
     }

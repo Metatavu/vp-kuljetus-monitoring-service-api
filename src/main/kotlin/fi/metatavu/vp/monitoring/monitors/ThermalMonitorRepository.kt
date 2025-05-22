@@ -67,7 +67,6 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         activeBefore: OffsetDateTime?,
         toBeActivatedBefore: OffsetDateTime?,
         monitorType: String?,
-        activeFromIsNull: Boolean,
         first: Int?,
         max: Int?
     ): Pair<List<ThermalMonitorEntity>, Long> {
@@ -84,18 +83,14 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
             parameters.and("activeBefore", activeBefore)
         }
 
-        if (activeFromIsNull) {
-            addCondition(queryBuilder, "activeFrom IS NULL")
-        } else {
-            if (activeAfter != null) {
-                addCondition(queryBuilder, "activeFrom > :activeAfter")
-                parameters.and("activeAfter", activeAfter)
-            }
+        if (activeAfter != null) {
+            addCondition(queryBuilder, "activeFrom > :activeAfter")
+            parameters.and("activeAfter", activeAfter)
+        }
 
-            if (toBeActivatedBefore != null)  {
-                addCondition(queryBuilder, "activeFrom < :toBeActivatedBefore")
-                parameters.and("toBeActivatedBefore", toBeActivatedBefore)
-            }
+        if (toBeActivatedBefore != null)  {
+            addCondition(queryBuilder, "activeFrom < :toBeActivatedBefore")
+            parameters.and("toBeActivatedBefore", toBeActivatedBefore)
         }
 
         if (monitorType != null) {
@@ -104,6 +99,18 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
         }
 
         return applyFirstMaxToQuery(find(queryBuilder.toString(), parameters), firstIndex = first, maxResults = max)
+    }
+
+    suspend fun listOneOffThermalMonitorsToBeActivated(): List<ThermalMonitorEntity> {
+        val query = """
+            SELECT tm FROM ThermalMonitorEntity tm
+            WHERE tm.monitorType = 'ONE_OFF'
+            AND tm.status = 'PENDING'
+            AND (tm.activeFrom < :toBeActivatedBefore OR tm.activeFrom IS NULL)
+        """
+        val parameters = Parameters.with("toBeActivatedBefore", OffsetDateTime.now())
+
+        return find(query, parameters).list<ThermalMonitorEntity>().awaitSuspending()
     }
 
     /**

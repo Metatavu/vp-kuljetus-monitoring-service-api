@@ -109,7 +109,6 @@ class ThermalMonitorController {
      * @param activeBefore
      * @param activeAfter
      * @param toBeActivatedBefore
-     * @param activeFromIsNull
      * @param first
      * @param max
      */
@@ -119,7 +118,6 @@ class ThermalMonitorController {
         activeAfter: OffsetDateTime? = null,
         toBeActivatedBefore: OffsetDateTime? = null,
         monitorType: ThermalMonitorType? = null,
-        activeFromIsNull: Boolean = false,
         first: Int? = null,
         max: Int? = null
     ): List<ThermalMonitorEntity> {
@@ -128,11 +126,14 @@ class ThermalMonitorController {
             activeAfter = activeAfter,
             activeBefore = activeBefore,
             toBeActivatedBefore = toBeActivatedBefore,
-            activeFromIsNull = activeFromIsNull,
             monitorType = monitorType?.toString(),
             first = first,
             max = max
         ).first
+    }
+
+    suspend fun listOneOffMonitorsToBeActivated(): List<ThermalMonitorEntity> {
+        return thermalMonitorRepository.listOneOffThermalMonitorsToBeActivated()
     }
 
     /**
@@ -173,17 +174,9 @@ class ThermalMonitorController {
      *  - Set status to FINISHED if monitor status is ACTIVE and monitor activeTo is before now
      */
     suspend fun resolveOneOffMonitorStatuses() {
-        list(
-            status = ThermalMonitorStatus.PENDING,
-            monitorType = ThermalMonitorType.ONE_OFF,
-            toBeActivatedBefore = OffsetDateTime.now()
-        ).forEach { thermalMonitorRepository.activateThermalMonitor(it) }
-
-        list(
-            status = ThermalMonitorStatus.PENDING,
-            monitorType = ThermalMonitorType.ONE_OFF,
-            activeFromIsNull = true
-        ).forEach { thermalMonitorRepository.activateThermalMonitor(it) }
+        listOneOffMonitorsToBeActivated().forEach {
+            thermalMonitorRepository.activateThermalMonitor(it)
+        }
 
         list(
             status = ThermalMonitorStatus.ACTIVE,

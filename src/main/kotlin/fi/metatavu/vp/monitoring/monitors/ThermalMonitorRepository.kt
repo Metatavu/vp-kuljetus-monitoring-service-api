@@ -7,7 +7,7 @@ import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import jakarta.enterprise.context.ApplicationScoped
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 /**
  * Database operations for thermal monitors
@@ -177,22 +177,21 @@ class ThermalMonitorRepository: AbstractRepository<ThermalMonitorEntity, UUID>()
      */
     suspend fun listScheduledActiveMonitorsWithoutActiveSchedules(currentTime: OffsetDateTime): List<ThermalMonitorEntity> {
         val query = """
-                SELECT tm FROM ThermalMonitorEntity tm
-                WHERE tm.monitorType = 'SCHEDULED'
-                AND tm.status = 'ACTIVE'
-                AND NOT EXISTS (
-                    SELECT 1 FROM ThermalMonitorSchedulePeriodEntity sp
-                    WHERE sp.thermalMonitor = tm
-                    AND (
-                        (sp.startWeekDay < :currentWeekDay OR (sp.startWeekDay = :currentWeekDay AND (sp.startHour < :currentHour OR (sp.startHour = :currentHour AND sp.startMinute <= :currentMinute))))
-                        AND
-                        (sp.endWeekDay > :currentWeekDay OR (sp.endWeekDay = :currentWeekDay AND (sp.endHour > :currentHour OR (sp.endHour = :currentHour AND sp.endMinute >= :currentMinute))))
-                    )
-                )
-            """
-        val parameters = Parameters.with("currentWeekDay", currentTime.dayOfWeek.value - 1)
-            .and("currentHour", currentTime.hour)
-            .and("currentMinute", currentTime.minute)
+            SELECT tm FROM ThermalMonitorEntity tm
+            WHERE tm.monitorType = 'SCHEDULED'
+              AND tm.status = 'ACTIVE'
+              AND NOT EXISTS (
+                SELECT 1 FROM ThermalMonitorSchedulePeriodEntity sp
+                WHERE sp.thermalMonitor = tm
+                  AND :currentTimeInMinutes BETWEEN
+                      (sp.startWeekDay * 1440 + sp.startHour * 60 + sp.startMinute)
+                      AND
+                      (sp.endWeekDay * 1440 + sp.endHour * 60 + sp.endMinute)
+              )
+        """
+
+        val currentTimeInMinutes: Int = (currentTime.dayOfWeek.value - 1) * 1440 + currentTime.hour * 60 + currentTime.minute
+        val parameters = Parameters.with("currentTimeInMinutes", currentTimeInMinutes)
 
         return find(query, parameters).list<ThermalMonitorEntity>().awaitSuspending()
     }

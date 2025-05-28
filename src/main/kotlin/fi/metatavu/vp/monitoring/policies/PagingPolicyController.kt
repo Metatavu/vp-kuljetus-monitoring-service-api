@@ -194,12 +194,12 @@ class PagingPolicyController {
         } else if (thresholdLow != null && temperature < thresholdLow) {
             return "Vahti: ${incident.thermalMonitor.name} \n"
                 .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
-                .plus("Ongelma: lämpötila on liian alhainen")
+                .plus("Ongelma: lämpötila on liian alhainen \n")
                 .plus("Lämpötila: $temperature")
         } else if (thresholdHigh != null && temperature > thresholdHigh) {
             return "Vahti: ${incident.thermalMonitor.name} \n"
                 .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
-                .plus("Ongelma: lämpötila on liian korkea")
+                .plus("Ongelma: lämpötila on liian korkea \n")
                 .plus("Lämpötila: $temperature")
         }
 

@@ -300,7 +300,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
         val expectedContent = "Vahti: Monitor 1 \n"
             .plus("Anturi: $thermometerId \n")
-            .plus("Ongelma: lämpötila on liian korkea")
+            .plus("Ongelma: lämpötila on liian korkea \n")
             .plus("Lämpötila: ${60f}")
         val emailParameters = mailgunMocker.createParameterList(
             fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
@@ -364,7 +364,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
         val expectedContent = "Vahti: Monitori \n"
             .plus("Anturi: $thermometerId \n")
-            .plus("Ongelma: lämpötila on liian alhainen")
+            .plus("Ongelma: lämpötila on liian alhainen \n")
             .plus("Lämpötila: ${-100f}")
         val emailParameters = mailgunMocker.createParameterList(
             fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,

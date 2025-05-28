@@ -3,6 +3,7 @@ package fi.metatavu.vp.monitoring.policies
 import fi.metatavu.vp.api.model.ThermalMonitorIncidentStatus
 import fi.metatavu.vp.api.model.ThermalMonitorPagingPolicy
 import fi.metatavu.vp.api.spec.ThermalMonitorPagingPoliciesApi
+import fi.metatavu.vp.monitoring.event.TriggerPoliciesEvent
 import fi.metatavu.vp.monitoring.incidents.IncidentController
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorController
 import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactController
@@ -10,6 +11,7 @@ import fi.metatavu.vp.monitoring.rest.AbstractApi
 import io.quarkus.hibernate.reactive.panache.common.WithSession
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
+import io.vertx.mutiny.core.eventbus.EventBus
 import jakarta.annotation.security.RolesAllowed
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
@@ -33,7 +35,7 @@ class ThermalMonitorPagingPoliciesApiImpl: ThermalMonitorPagingPoliciesApi, Abst
     lateinit var pagingPolicyContactController: PagingPolicyContactController
 
     @Inject
-    lateinit var incidentController: IncidentController
+    lateinit var eventBus: EventBus
 
     @ConfigProperty(name = "vp.monitoring.cron.apiKey")
     lateinit var cronKey: String
@@ -112,11 +114,7 @@ class ThermalMonitorPagingPoliciesApiImpl: ThermalMonitorPagingPoliciesApi, Abst
             return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
         }
 
-        val triggeredIncident = incidentController.list(
-            incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED
-        )
-
-        triggeredIncident.forEach { pagingPolicyController.triggerNextPolicy(it) }
+        eventBus.send("TRIGGER_POLICIES", TriggerPoliciesEvent())
 
         createOk()
     }

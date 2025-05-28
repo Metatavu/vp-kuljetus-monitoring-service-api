@@ -7,6 +7,8 @@ import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.testcontainers.shaded.org.awaitility.Awaitility
+import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.util.UUID
@@ -345,6 +347,11 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
         it.setCronKey().thermalMonitors.resolveMonitorStatuses()
 
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size == 2 &&
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.PENDING).size == 1
+        }
+
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.PENDING).size, "Only one monitor should be PENDING at this point")
         assertEquals(2, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "Two monitors should be ACTIVE at this point")
 
@@ -368,6 +375,11 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.FINISHED).size, "No monitor should be FINISHED yet")
 
         it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.FINISHED).size == 1 &&
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size == 2
+        }
 
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.FINISHED).size, "There should be only one FINISHED monitor at this point")
         assertEquals(2, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be two ACTIVE monitors at this point")
@@ -753,6 +765,11 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
         it.setCronKey().thermalMonitors.resolveMonitorStatuses()
 
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size == 1 &&
+                    it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).isEmpty()
+        }
+
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be one INACTIVE monitor")
         assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be no ACTIVE monitors")
 
@@ -792,6 +809,10 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         )
 
         it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size == 1 &&
+                    it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).isEmpty()
+        }
 
         assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be no INACTIVE monitors")
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be one ACTIVE monitor")
@@ -822,6 +843,11 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
         it.setCronKey().thermalMonitors.resolveMonitorStatuses()
 
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size == 1 &&
+                    it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).isEmpty()
+        }
+
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be one INACTIVE monitor")
         assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be no ACTIVE monitors")
 
@@ -849,6 +875,11 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         )
 
         it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size == 1 &&
+                    it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).isEmpty()
+        }
 
         assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be no INACTIVE monitors")
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be one ACTIVE monitor")
@@ -879,6 +910,11 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
 
         it.setCronKey().thermalMonitors.resolveMonitorStatuses()
 
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size == 1 &&
+                    it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).isEmpty()
+        }
+
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be one INACTIVE monitor")
         assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be no ACTIVE monitors")
 
@@ -906,6 +942,11 @@ class ThermalMonitorTestsIT: AbstractFunctionalTest() {
         )
 
         it.setCronKey().thermalMonitors.resolveMonitorStatuses()
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size == 1 &&
+                    it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).isEmpty()
+        }
 
         assertEquals(0, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.INACTIVE).size, "There should be no INACTIVE monitors")
         assertEquals(1, it.manager.thermalMonitors.listThermalMonitors(status = ThermalMonitorStatus.ACTIVE).size, "There should be one ACTIVE monitor")

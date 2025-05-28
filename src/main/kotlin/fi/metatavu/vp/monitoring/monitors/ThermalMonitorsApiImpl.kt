@@ -4,11 +4,13 @@ import fi.metatavu.vp.api.model.ThermalMonitor
 import fi.metatavu.vp.api.model.ThermalMonitorStatus
 import fi.metatavu.vp.api.model.ThermalMonitorType
 import fi.metatavu.vp.api.spec.ThermalMonitorsApi
+import fi.metatavu.vp.monitoring.event.ResolveMonitorStatusesEvent
 import fi.metatavu.vp.monitoring.monitors.schedules.ThermalMonitorSchedulePeriodController
 import fi.metatavu.vp.monitoring.rest.AbstractApi
 import io.quarkus.hibernate.reactive.panache.common.WithSession
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
+import io.vertx.mutiny.core.eventbus.EventBus
 import jakarta.annotation.security.RolesAllowed
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
@@ -34,6 +36,9 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
 
     @ConfigProperty(name = "vp.env")
     var env: String? = null
+
+    @Inject
+    lateinit var eventBus: EventBus
 
     @RolesAllowed(MANAGER_ROLE)
     @WithTransaction
@@ -133,9 +138,7 @@ class ThermalMonitorsApiImpl: ThermalMonitorsApi, AbstractApi() {
             return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
         }
 
-        thermalMonitorController.resolveOneOffMonitorStatuses()
-
-        thermalMonitorController.resolveScheduledMonitorStatuses()
+        eventBus.send("RESOLVE_MONITOR_STATUSES", ResolveMonitorStatusesEvent())
 
         createOk()
     }

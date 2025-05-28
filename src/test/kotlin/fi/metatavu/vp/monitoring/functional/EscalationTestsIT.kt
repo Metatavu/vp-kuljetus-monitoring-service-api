@@ -80,6 +80,10 @@ class EscalationTestsIT: AbstractFunctionalTest() {
             "No paged policies should be created before the cron endpoint is triggered")
         it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
 
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
+        }
+
         val incident = it.manager.incidents.listThermalMonitorIncidents().first()
 
         assertEquals(
@@ -235,6 +239,10 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
         Thread.sleep(5000)
         it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
+        }
         val pagedPolicies = it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies
         assertEquals(1, pagedPolicies!!.size, "New policies should not be created after incident is acknowledged")
         assertEquals(policy.id!!, pagedPolicies.first().policyId, "Triggered policy id should match the first policy")

@@ -3,6 +3,8 @@ package fi.metatavu.vp.monitoring.incidents
 import fi.metatavu.vp.api.model.ThermalMonitorIncident
 import fi.metatavu.vp.api.model.ThermalMonitorIncidentStatus
 import fi.metatavu.vp.api.spec.ThermalMonitorIncidentsApi
+import fi.metatavu.vp.monitoring.event.CreateLostSensorIncidentsEvent
+import fi.metatavu.vp.monitoring.event.TriggerPoliciesEvent
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorController
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.monitors.thermometers.MonitorThermometerController
@@ -10,6 +12,7 @@ import fi.metatavu.vp.monitoring.rest.AbstractApi
 import io.quarkus.hibernate.reactive.panache.common.WithSession
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
+import io.vertx.mutiny.core.eventbus.EventBus
 import jakarta.annotation.security.RolesAllowed
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
@@ -33,13 +36,16 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
     @ConfigProperty(name = "vp.monitoring.cron.apiKey")
     lateinit var cronKey: String
 
+    @Inject
+    lateinit var eventBus: EventBus
+
     @WithTransaction
     override fun createLostSensorIncidents(): Uni<Response> = withCoroutineScope {
         if (requestCronKey != cronKey) {
             return@withCoroutineScope createUnauthorized(UNAUTHORIZED)
         }
 
-        incidentController.createLostSensorIncidents()
+        eventBus.send("CREATE_LOST_SENSOR_INCIDENTS", CreateLostSensorIncidentsEvent())
 
         createOk()
     }

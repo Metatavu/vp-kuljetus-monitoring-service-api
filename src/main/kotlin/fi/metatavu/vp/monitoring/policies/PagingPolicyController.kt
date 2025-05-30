@@ -9,7 +9,8 @@ import fi.metatavu.vp.monitoring.incidents.ThermalMonitorIncidentEntity
 import fi.metatavu.vp.monitoring.incidents.pagedpolicies.PagedPolicyRepository
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactEntity
-import fi.metatavu.vp.usermanagement.model.Driver
+import fi.metatavu.vp.vehiclemanagement.model.Towable
+import fi.metatavu.vp.vehiclemanagement.model.Truck
 import fi.metatavu.vp.vehiclemanagement.model.TruckOrTowableThermometer
 import fi.metatavu.vp.vehiclemanagement.spec.TowablesApi
 import fi.metatavu.vp.vehiclemanagement.spec.TrucksApi
@@ -185,16 +186,13 @@ class PagingPolicyController {
             when (PagingPolicyType.valueOf(nextPolicy.pagingPolicyContact.contactType)) {
                 PagingPolicyType.EMAIL -> {
                     val receiverEmail = nextPolicy.pagingPolicyContact.contact
-                    if (receiverEmail != null) {
-                        val subject = "LÄMPÖTILAHÄLYTYS"
-                        val content = constructMessage(incident)
+                    val (subject, content) = constructSubjectAndMessage(incident)
 
-                        emailController.sendEmail(
-                            to = receiverEmail,
-                            subject = subject,
-                            content = content
-                        )
-                    }
+                    emailController.sendEmail(
+                        to = receiverEmail,
+                        subject = subject,
+                        content = content
+                    )
 
                 }
             }
@@ -203,10 +201,12 @@ class PagingPolicyController {
     }
 
     /**
-     * Construct a message based on the type of the incident
+     * Construct a subject and a message based on the type of the incident
      * This message will be sent to a policy contact
+     *
+     * @param incident
      */
-    suspend fun constructMessage(incident: ThermalMonitorIncidentEntity): String {
+    suspend fun constructSubjectAndMessage(incident: ThermalMonitorIncidentEntity): Pair<String, String> {
         val temperature = incident.temperature
         val thresholdLow = incident.thresholdLow
         val thresholdHigh = incident.thresholdHigh
@@ -221,7 +221,17 @@ class PagingPolicyController {
             ""
         }
 
-        val (incidentTargetName, incidentThermometerName) = fetchThermometerExternalInformation(incident.monitorThermometer.thermometerId)
+        val incidentTarget = fetchThermometerExternalInformation(incident.monitorThermometer.thermometerId)
+
+        val incidentTargetName = incidentTarget?.name ?: "[VIRHETILANNE: HÄLYTYKSEN KOHDETTA EI LÖYTYNYT]"
+        val incidentThermometerName = incidentTarget?.thermometerName ?: "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]"
+
+        val subject = when (incidentTarget?.type) {
+            IncidentTargetType.SITE -> "Lämpötilahälytys terminaalissa $incidentTargetName"
+            IncidentTargetType.TRUCK -> "Lämpötilahälytys ajoneuvossa $incidentTargetName"
+            IncidentTargetType.TOWABLE -> "Lämpötilahälytys perävaunussa $incidentTargetName"
+            null -> "Lämpötilahälytys: [VIRHETILANNE: HÄLYTYKSEN KOHDETTA EI LÖYTYNYT]"
+        }
 
         val message = "HÄLYTYKSEN TIEDOT\n\n"
             .plus("KOHDE: $incidentTargetName\n")
@@ -230,8 +240,21 @@ class PagingPolicyController {
             .plus("SYY: $reason\n")
             .plus("AIKA: ${incident.triggeredAt}")
 
-        return message
+
+        return Pair(subject, message)
     }
+
+    enum class IncidentTargetType {
+        SITE,
+        TRUCK,
+        TOWABLE
+    }
+
+    data class IncidentTarget(
+        val type: IncidentTargetType,
+        val name: String,
+        val thermometerName: String
+    )
 
     /**
      * Fetches the name of the incident target and the name of the incident thermometer.
@@ -239,7 +262,7 @@ class PagingPolicyController {
      *
      * @param thermometerId
      */
-    private suspend fun fetchThermometerExternalInformation(thermometerId: UUID): Pair<String, String> {
+    private suspend fun fetchThermometerExternalInformation(thermometerId: UUID): IncidentTarget? {
         val sitesList = sitesApi
             .listSites(thermometerId = thermometerId, first = null, max = null, archived = null)
             .awaitSuspending()
@@ -252,17 +275,17 @@ class PagingPolicyController {
                 .awaitSuspending()
 
             if (thermometerResponse.status == 404) {
-                return Pair(site.name, "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
+                return IncidentTarget(IncidentTargetType.SITE, "terminaali " + site.name, "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
             }
 
             val thermometer = thermometerResponse.readEntity(TerminalThermometer::class.java)
-            return Pair(site.name, thermometer.name ?: thermometer.hardwareSensorId)
+            return IncidentTarget(IncidentTargetType.SITE,"terminaali " +  site.name, thermometer.name ?: thermometer.hardwareSensorId)
         }
 
         val trucksList = trucksApi
             .listTrucks(thermometerId = thermometerId, first = null, max = null, archived = null, plateNumber = null, sortBy = null, sortDirection = null)
             .awaitSuspending()
-            .readEntity(Array<fi.metatavu.vp.vehiclemanagement.model.Truck>::class.java)
+            .readEntity(Array<Truck>::class.java)
 
         if (trucksList.isNotEmpty()) {
             val truck = trucksList.first()
@@ -272,18 +295,18 @@ class PagingPolicyController {
 
 
             if (thermometerResponse.status == 404) {
-                return Pair(truck.name ?: truck.vin, "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
+                return IncidentTarget(IncidentTargetType.TRUCK,"ajoneuvo " + (truck.name ?: truck.vin), "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
             }
 
             val thermometer = thermometerResponse.readEntity(TruckOrTowableThermometer::class.java)
 
-            return Pair(truck.name ?: truck.vin, thermometer.name ?: thermometer.macAddress)
+            return IncidentTarget(IncidentTargetType.TRUCK,"ajoneuvo " + (truck.name ?: truck.vin), thermometer.name ?: thermometer.macAddress)
         }
 
         val towablesList = towablesApi
             .listTowables(thermometerId = thermometerId, first = null, max = null, archived = null, plateNumber = null)
             .awaitSuspending()
-            .readEntity(Array<fi.metatavu.vp.vehiclemanagement.model.Towable>::class.java)
+            .readEntity(Array<Towable>::class.java)
 
         if (towablesList.isNotEmpty()) {
             val towable = towablesList.first()
@@ -293,13 +316,13 @@ class PagingPolicyController {
 
 
             if (thermometerResponse.status == 404) {
-                return Pair(towable.name ?: towable.vin, "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
+                return IncidentTarget(IncidentTargetType.TOWABLE,"perävaunu " + (towable.name ?: towable.vin), "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
             }
 
             val thermometer = thermometerResponse.readEntity(TruckOrTowableThermometer::class.java)
-            return Pair(towable.name ?: towable.vin, thermometer.name ?: thermometer.macAddress)
+            return IncidentTarget(IncidentTargetType.TOWABLE,"perävaunu " +  (towable.name ?: towable.vin), thermometer.name ?: thermometer.macAddress)
         }
 
-        return Pair("[VIRHETILANNE: HÄLYTYKSEN KOHDETTA EI LÖYTYNYT]", "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
+        return null
     }
 }

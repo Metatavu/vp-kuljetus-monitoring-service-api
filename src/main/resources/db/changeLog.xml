@@ -210,4 +210,12 @@
         <addNotNullConstraint tableName="pagingpolicycontact" columnName="contacttype" columnDataType="varchar(191)"/>
         <renameColumn tableName="pagingpolicycontact" oldColumnName="email" newColumnName="contact" columnDataType="varchar(191)"/>
     </changeSet>
+    <changeSet id="thresholds-in-incidents" author="Simeon Platonov">
+        <addColumn tableName="thermalmonitorincident">
+            <column name="thresholdlow" type="float"/>
+        </addColumn>
+        <addColumn tableName="thermalmonitorincident">
+            <column name="thresholdhigh" type="float"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

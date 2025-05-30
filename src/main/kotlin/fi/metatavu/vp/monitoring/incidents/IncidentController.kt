@@ -31,11 +31,15 @@ class IncidentController {
      * @param monitorThermometer
      * @param thermalMonitor
      * @param temperature
+     * @param thresholdLow
+     * @param thresholdHigh
      */
     suspend fun create(
         monitorThermometer: MonitorThermometerEntity,
         thermalMonitor: ThermalMonitorEntity,
         temperature: Float?,
+        thresholdLow: Float?,
+        thresholdHigh: Float?
     ): ThermalMonitorIncidentEntity {
         return incidentRepository.create(
             status = ThermalMonitorIncidentStatus.TRIGGERED.toString(),
@@ -43,6 +47,8 @@ class IncidentController {
             monitorThermometer = monitorThermometer,
             thermalMonitor = thermalMonitor,
             temperature = temperature,
+            thresholdLow = thresholdLow,
+            thresholdHigh = thresholdHigh
         )
     }
 
@@ -162,7 +168,11 @@ class IncidentController {
             val triggeredIncident = list(monitorThermometer = it, incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED).firstOrNull()
             val acknowledgedIncident = list(monitorThermometer = it, incidentStatus = ThermalMonitorIncidentStatus.ACKNOWLEDGED).firstOrNull()
             if (triggeredIncident == null && acknowledgedIncident == null) {
-                create(it, it.thermalMonitor, null)
+                create(
+                    monitorThermometer = it,
+                    thermalMonitor = it.thermalMonitor,
+                    null, null, null
+                )
             }
         }
     }

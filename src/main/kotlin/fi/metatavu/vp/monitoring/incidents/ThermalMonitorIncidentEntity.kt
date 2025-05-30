@@ -38,4 +38,10 @@ class ThermalMonitorIncidentEntity {
 
     @Column
     var temperature: Float? = null
+
+    @Column
+    var thresholdLow: Float? = null
+
+    @Column
+    var thresholdHigh: Float? = null
 }

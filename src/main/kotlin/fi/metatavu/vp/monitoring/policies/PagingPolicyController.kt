@@ -161,7 +161,7 @@ class PagingPolicyController {
                 PagingPolicyType.EMAIL -> {
                     val receiverEmail = nextPolicy.pagingPolicyContact.contact
                     if (receiverEmail != null) {
-                        val subject = "Hälytys: ${incident.thermalMonitor.name}"
+                        val subject = "LÄMPÖTILAHÄLYTYS"
                         val content = constructMessage(incident)
 
                         emailController.sendEmail(
@@ -183,26 +183,27 @@ class PagingPolicyController {
      */
     fun constructMessage(incident: ThermalMonitorIncidentEntity): String {
         val temperature = incident.temperature
-        val thresholdLow = incident.thermalMonitor.thresholdLow
-        val thresholdHigh = incident.thermalMonitor.thresholdHigh
+        val thresholdLow = incident.thresholdLow
+        val thresholdHigh = incident.thresholdHigh
 
-        if (temperature == null) {
-            return "Vahti: ${incident.thermalMonitor.name} \n"
-                .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
-                .plus("Ongelma: lämpötila ei päivittynyt määräajassa \n")
-                .plus("Järjestelmälle asetettu määräaika lämpötilan päivittymiselle on $sensorLostDelayMinutes minuuttia")
+
+        val reason = if (temperature == null) {
+            "Lämpötila ei päivittynyt määräajassa. Järjestelmässä asetettu raja on $sensorLostDelayMinutes minuuttia."
         } else if (thresholdLow != null && temperature < thresholdLow) {
-            return "Vahti: ${incident.thermalMonitor.name} \n"
-                .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
-                .plus("Ongelma: lämpötila on liian alhainen")
-                .plus("Lämpötila: $temperature")
+            "Lämpötila on $temperature °C, joka on alhaisempi kuin asetettu alaraja: $thresholdLow °C"
         } else if (thresholdHigh != null && temperature > thresholdHigh) {
-            return "Vahti: ${incident.thermalMonitor.name} \n"
-                .plus("Anturi: ${incident.monitorThermometer.thermometerId} \n")
-                .plus("Ongelma: lämpötila on liian korkea")
-                .plus("Lämpötila: $temperature")
+            "Lämpötila on $temperature °C, joka on korkeampi kuin asetettu yläraja: $thresholdHigh °C"
+        } else {
+            ""
         }
 
-        return "Tuntematon hälytys"
+        val message = "HÄLYTYKSEN TIEDOT\n\n"
+            .plus("KOHDE:\n")
+            .plus("VAHTI: ${incident.thermalMonitor.name}\n")
+            .plus("ANTURI: ${incident.monitorThermometer.thermometerId}\n")
+            .plus("SYY: $reason\n")
+            .plus("AIKA: ${incident.triggeredAt}")
+
+        return message
     }
 }

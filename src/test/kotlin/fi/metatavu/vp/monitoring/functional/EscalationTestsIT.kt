@@ -80,6 +80,10 @@ class EscalationTestsIT: AbstractFunctionalTest() {
             "No paged policies should be created before the cron endpoint is triggered")
         it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
 
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
+        }
+
         val incident = it.manager.incidents.listThermalMonitorIncidents().first()
 
         assertEquals(
@@ -235,6 +239,10 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
         Thread.sleep(5000)
         it.setCronKey().thermalMonitorPagingPolicies.triggerPolicies()
+
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies?.size == 1
+        }
         val pagedPolicies = it.manager.incidents.listThermalMonitorIncidents().firstOrNull()?.pagedPolicies
         assertEquals(1, pagedPolicies!!.size, "New policies should not be created after incident is acknowledged")
         assertEquals(policy.id!!, pagedPolicies.first().policyId, "Triggered policy id should match the first policy")
@@ -289,15 +297,17 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         }
 
         val mailgunMocker = MailgunMocker()
-
-        val expectedContent = "Vahti: Monitor 1 \n"
-            .plus("Anturi: $thermometerId \n")
-            .plus("Ongelma: lämpötila on liian korkea")
-            .plus("Lämpötila: ${60f}")
+        val incident = it.manager.incidents.listThermalMonitorIncidents().first()
+        val expectedContent = "HÄLYTYKSEN TIEDOT\n\n"
+            .plus("KOHDE:\n")
+            .plus("VAHTI: ${monitor.name}\n")
+            .plus("ANTURI: ${incident.thermometerId}\n")
+            .plus("SYY: Lämpötila on 60.0 °C, joka on korkeampi kuin asetettu yläraja: 50.0 °C\n")
+            .plus("AIKA: ${incident.timestamp}")
         val emailParameters = mailgunMocker.createParameterList(
             fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
             to = "test@example.com",
-            subject = "Hälytys: Monitor 1",
+            subject = "LÄMPÖTILAHÄLYTYS",
             content = expectedContent
         )
 
@@ -353,15 +363,17 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         }
 
         val mailgunMocker = MailgunMocker()
-
-        val expectedContent = "Vahti: Monitori \n"
-            .plus("Anturi: $thermometerId \n")
-            .plus("Ongelma: lämpötila on liian alhainen")
-            .plus("Lämpötila: ${-100f}")
+        val incident = it.manager.incidents.listThermalMonitorIncidents().first()
+        val expectedContent = "HÄLYTYKSEN TIEDOT\n\n"
+            .plus("KOHDE:\n")
+            .plus("VAHTI: ${monitor.name}\n")
+            .plus("ANTURI: ${incident.thermometerId}\n")
+            .plus("SYY: Lämpötila on -100.0 °C, joka on alhaisempi kuin asetettu alaraja: -50.0 °C\n")
+            .plus("AIKA: ${incident.timestamp}")
         val emailParameters = mailgunMocker.createParameterList(
             fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
             to = "testi@testi.fi",
-            subject = "Hälytys: Monitori",
+            subject = "LÄMPÖTILAHÄLYTYS",
             content = expectedContent
         )
 
@@ -419,14 +431,18 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
         val mailgunMocker = MailgunMocker()
 
-        val expectedContent = "Vahti: Monitori \n"
-            .plus("Anturi: $thermometerId \n")
-            .plus("Ongelma: lämpötila ei päivittynyt määräajassa \n")
-            .plus("Järjestelmälle asetettu määräaika lämpötilan päivittymiselle on 5 minuuttia")
+        val incident = it.manager.incidents.listThermalMonitorIncidents().first()
+
+        val expectedContent = "HÄLYTYKSEN TIEDOT\n\n"
+            .plus("KOHDE:\n")
+            .plus("VAHTI: ${monitor.name}\n")
+            .plus("ANTURI: ${incident.thermometerId}\n")
+            .plus("SYY: Lämpötila ei päivittynyt määräajassa. Järjestelmässä asetettu raja on 5 minuuttia.\n")
+            .plus("AIKA: ${incident.timestamp}")
         val emailParameters = mailgunMocker.createParameterList(
             fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
             to = "testi@testi.fi",
-            subject = "Hälytys: Monitori",
+            subject = "LÄMPÖTILAHÄLYTYS",
             content = expectedContent
         )
 

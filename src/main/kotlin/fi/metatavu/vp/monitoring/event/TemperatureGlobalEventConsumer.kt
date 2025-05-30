@@ -82,7 +82,9 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
         incidentController.create(
                 thermalMonitor = thermalMonitor,
                 monitorThermometer = monitorThermometer,
-                temperature = temperature
+                temperature = temperature,
+                thresholdLow = thresholdLow,
+                thresholdHigh = thresholdHigh,
         )
     }
 

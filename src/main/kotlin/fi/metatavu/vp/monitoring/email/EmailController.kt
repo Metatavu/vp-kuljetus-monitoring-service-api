@@ -46,7 +46,7 @@ class EmailController {
                 MultiMap.caseInsensitiveMultiMap()
                     .add("to", to)
                     .add("subject", subject)
-                    .add("html", content)
+                    .add("text", content)
                     .add("from", senderEmail)
             )
     }

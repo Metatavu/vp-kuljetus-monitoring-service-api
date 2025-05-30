@@ -21,6 +21,8 @@ class IncidentRepository: AbstractRepository<ThermalMonitorIncidentEntity, UUID>
      * @param monitorThermometer
      * @param thermalMonitor
      * @param temperature
+     * @param thresholdLow
+     * @param thresholdHigh
      */
     suspend fun create(
         status: String,
@@ -28,6 +30,8 @@ class IncidentRepository: AbstractRepository<ThermalMonitorIncidentEntity, UUID>
         monitorThermometer: MonitorThermometerEntity,
         thermalMonitor: ThermalMonitorEntity,
         temperature: Float?,
+        thresholdLow: Float?,
+        thresholdHigh: Float?
     ): ThermalMonitorIncidentEntity {
         val incident = ThermalMonitorIncidentEntity()
         incident.id = UUID.randomUUID()
@@ -40,6 +44,8 @@ class IncidentRepository: AbstractRepository<ThermalMonitorIncidentEntity, UUID>
         incident.monitorThermometer = monitorThermometer
         incident.thermalMonitor = thermalMonitor
         incident.temperature = temperature
+        incident.thresholdLow = thresholdLow
+        incident.thresholdHigh = thresholdHigh
 
         return persistSuspending(incident)
     }

@@ -29,7 +29,7 @@ class MailgunMocker() {
         return listOf<NameValuePair>(
             BasicNameValuePair("to", to),
             BasicNameValuePair("subject", subject),
-            BasicNameValuePair("html", content),
+            BasicNameValuePair("text", content),
             BasicNameValuePair("from", fromEmail)
         )
     }

@@ -406,6 +406,10 @@ class ThermalMonitorIncidentsTestsIT: AbstractFunctionalTest() {
 
         it.setCronKey().incidents.createSensorLostIncidents()
 
+        Awaitility.await().atMost(Duration.ofMinutes(2)).until {
+            it.manager.incidents.listThermalMonitorIncidents().size == 1
+        }
+
         val incidents1 = it.manager.incidents.listThermalMonitorIncidents()
         assertEquals(
             1,

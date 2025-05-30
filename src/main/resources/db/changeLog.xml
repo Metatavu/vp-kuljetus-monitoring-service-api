@@ -1,32 +1,221 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="examples" author="jari.nykanen">
-        <createTable tableName="example">
+    <changeSet id="thermalmonitors" author="Simeon Platonov">
+        <createTable tableName="thermalmonitor">
             <column name="id" type="binary(16)">
-                <constraints nullable="false" primaryKey="true"/>
+                <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="name" type="varchar(191)">
                 <constraints nullable="false"/>
             </column>
-            <column name="amount" type="int">
+            <column name="status" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="thresholdlow" type="float"/>
+            <column name="thresholdhigh" type="float"/>
+            <column name="activefrom" type="datetime(6)"/>
+            <column name="activeto" type="datetime(6)"/>
+            <column name="creatorid" type="binary(16)">
                 <constraints nullable="false"/>
             </column>
             <column name="createdat" type="datetime(6)">
                 <constraints nullable="false"/>
             </column>
+            <column name="lastmodifierid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
             <column name="modifiedat" type="datetime(6)">
                 <constraints nullable="false"/>
             </column>
+        </createTable>
+
+        <createTable tableName="monitorthermometer">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="thermometerid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="thermalmonitor_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitor" referencedColumnNames="id" foreignKeyName="FK_MONITORTHERMOMETER_THERMALMONITOR"/>
+            </column>
             <column name="creatorid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
                 <constraints nullable="false"/>
             </column>
             <column name="lastmodifierid" type="binary(16)">
                 <constraints nullable="false"/>
             </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastmeasuredat" type="bigint"/>
+        </createTable>
+    </changeSet>
+    
+    <changeSet id="pagingpolicycontacts" author="Simeon Platonov">
+        <createTable tableName="pagingpolicycontact">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email" type="varchar(191)"/>
+            <column name="contactname" type="varchar(191)"/>
+            <column name="creatorid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastmodifierid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
+    <changeSet id="pagingpolicies" author="Simeon Platonov">
+        <createTable tableName="thermalmonitorpagingpolicy">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="pagingpolicycontact_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="pagingpolicycontact" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORPAGINGPOLICY_PAGINGPOLICYCONTACT"/>
+            </column>
+            <column name="thermalmonitor_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitor" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORPAGINGPOLICY_THERMALMONITOR"/>
+            </column>
+            <column name="policytype" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="priority" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="escalationdelayseconds" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creatorid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastmodifierid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="incidents" author="Simeon Platonov">
+        <createTable tableName="thermalmonitorincident">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="thermalmonitor_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitor" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORINCIDENT_THERMALMONITOR"/>
+            </column>
+            <column name="monitorthermometer_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="monitorthermometer" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORINCIDENT_MONITORTHERMOMETER"/>
+            </column>
+            <column name="temperature" type="bigint"/>
+            <column name="status" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="triggeredat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="acknowledgedat" type="datetime(6)"/>
+            <column name="resolvedat" type="datetime(6)"/>
+            <column name="acknowledgedby" type="binary(16)"/>
+            <column name="resolvedby" type="binary(16)"/>
+        </createTable>
+        <addColumn tableName="monitorthermometer">
+            <column name="archived" type="boolean"/>
+        </addColumn>
+        <update tableName="monitorthermometer">
+            <column name="archived" value="false"/>
+        </update>
+        <addNotNullConstraint tableName="monitorthermometer" columnName="archived" columnDataType="boolean"/>
+    </changeSet>
+
+    <changeSet id="pagedpolicies" author="Simeon Platonov">
+        <createTable tableName="pagedpolicy">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="incident_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitorincident" referencedColumnNames="id" foreignKeyName="FK_PAGEDPOLICY_THERMALMONITORINCIDENT"/>
+            </column>
+            <column name="policy_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitorpagingpolicy" referencedColumnNames="id" foreignKeyName="FK_PAGEDPOLICY_THERMALMONITORPAGINGPOLICY"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="scheduledmonitors" author="Simeon Platonov">
+        <addColumn tableName="thermalmonitor">
+            <column name="monitortype" type="varchar(191)"/>
+        </addColumn>
+        <update tableName="thermalmonitor">
+            <column name="monitortype" value="ONE_OFF"/>
+        </update>
+        <addNotNullConstraint tableName="thermalmonitor" columnName="monitortype" columnDataType="varchar(191)"/>
+        <createTable tableName="thermalmonitorscheduleperiod">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="thermalmonitor_id" type="binary(16)">
+                <constraints nullable="false" referencedTableName="thermalmonitor" referencedColumnNames="id" foreignKeyName="FK_THERMALMONITORSCHEDULEPERIOD_THERMALMONITOR"/>
+            </column>
+            <column name="startweekday" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="starthour" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="startminute" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endweekday" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endhour" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endminute" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="move-contact-type-to-contact" author="Simeon Platonov">
+        <dropColumn tableName="thermalmonitorpagingpolicy" columnName="policytype"/>
+        <addColumn tableName="pagingpolicycontact">
+            <column name="contacttype" type="varchar(191)"/>
+        </addColumn>
+        <update tableName="pagingpolicycontact">
+            <column name="contacttype" value="EMAIL"/>
+        </update>
+        <addNotNullConstraint tableName="pagingpolicycontact" columnName="contacttype" columnDataType="varchar(191)"/>
+        <renameColumn tableName="pagingpolicycontact" oldColumnName="email" newColumnName="contact" columnDataType="varchar(191)"/>
+    </changeSet>
+    <changeSet id="thresholds-in-incidents" author="Simeon Platonov">
+        <addColumn tableName="thermalmonitorincident">
+            <column name="thresholdlow" type="float"/>
+        </addColumn>
+        <addColumn tableName="thermalmonitorincident">
+            <column name="thresholdhigh" type="float"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

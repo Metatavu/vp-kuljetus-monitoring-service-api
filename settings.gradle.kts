@@ -10,4 +10,4 @@ pluginManagement {
         id(quarkusPluginId) version quarkusPluginVersion
     }
 }
-rootProject.name="example-api"
+rootProject.name="monitoring-service-api"

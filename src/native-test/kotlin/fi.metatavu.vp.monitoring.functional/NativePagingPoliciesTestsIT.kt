@@ -10,8 +10,5 @@ import io.quarkus.test.junit.TestProfile
  * Native tests for paging policies API
  */
 @QuarkusIntegrationTest
-@QuarkusTestResource.List(
-    QuarkusTestResource(MailgunTestResource::class)
-)
 @TestProfile(DefaultTestProfile::class)
 class NativePagingPoliciesTestsIT: ThermalMonitorPagingPoliciesTestsIT()

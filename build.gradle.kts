@@ -150,7 +150,7 @@ val generateDeliveryInfoApiSpec = tasks.register("generateDeliveryInfoApiSpec",G
     setProperty("apiPackage", "${project.group}.deliveryinfo.spec")
     setProperty("invokerPackage", "${project.group}.deliveryinfp.invoker")
     setProperty("modelPackage", "${project.group}.deliveryinfo.model")
-    setProperty("templateDir", "$rootDir/openapi/api-spec")
+    setProperty("templateDir", "$rootDir/openapi/rest-client")
     setProperty("validateSpec", false)
 
     this.configOptions.put("library", "jaxrs-spec")
@@ -170,7 +170,7 @@ val generateVehicleManagementApiSpec = tasks.register("generateVehicleManagement
     setProperty("apiPackage", "${project.group}.vehiclemanagement.spec")
     setProperty("invokerPackage", "${project.group}.vehiclemanagement.invoker")
     setProperty("modelPackage", "${project.group}.vehiclemanagement.model")
-    setProperty("templateDir", "$rootDir/openapi/api-spec")
+    setProperty("templateDir", "$rootDir/openapi/rest-client")
     setProperty("validateSpec", false)
 
     this.configOptions.put("library", "jaxrs-spec")

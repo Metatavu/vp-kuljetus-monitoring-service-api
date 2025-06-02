@@ -23,11 +23,11 @@ class TriggerPoliciesEventConsumer: WithCoroutineScope() {
     @Suppress("unused")
     @WithTransaction
     fun onEvent(triggerPoliciesEvent: TriggerPoliciesEvent) = withCoroutineScope(60_000) {
-        val triggeredIncident = incidentController.list(
+        val triggeredIncidents = incidentController.list(
             incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED
         )
 
-        triggeredIncident.forEach { pagingPolicyController.triggerNextPolicy(it) }
+        triggeredIncidents.forEach { pagingPolicyController.triggerNextPolicy(it) }
 
         return@withCoroutineScope true
     }

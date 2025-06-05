@@ -3,8 +3,7 @@ package fi.metatavu.vp.monitoring.functional
 import fi.metatavu.vp.messaging.RoutingKey
 import fi.metatavu.vp.messaging.client.MessagingClient
 import fi.metatavu.vp.messaging.events.TemperatureGlobalEvent
-import fi.metatavu.vp.monitoring.functional.resources.MailgunMocker
-import fi.metatavu.vp.monitoring.functional.resources.MailgunTestResource
+import fi.metatavu.vp.monitoring.functional.resources.*
 import fi.metatavu.vp.monitoring.functional.settings.ApiTestSettings
 import fi.metatavu.vp.monitoring.functional.settings.DefaultTestProfile
 import fi.metatavu.vp.test.client.models.*
@@ -24,7 +23,13 @@ import java.util.*
  */
 @QuarkusTest
 @QuarkusTestResource.List(
-    QuarkusTestResource(MailgunTestResource::class)
+    QuarkusTestResource(SitesTestResource::class),
+    QuarkusTestResource(TerminalThermometersTestResource::class),
+    QuarkusTestResource(TruckOrTowablelThermometersTestResource::class),
+    QuarkusTestResource(TrucksTestResource::class),
+    QuarkusTestResource(TowablesTestResource::class),
+    QuarkusTestResource(MailgunTestResource::class),
+
 )
 @TestProfile(DefaultTestProfile::class)
 class EscalationTestsIT: AbstractFunctionalTest() {
@@ -250,7 +255,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
     @Test
     fun testSendThresholdHighIncidentEmail() = createTestBuilder().use {
-        val thermometerId = UUID.randomUUID()
+        val thermometerId = TestData.terminalThermometers[0].id!!
 
         val monitor = it.manager.thermalMonitors.create(
             ThermalMonitor(
@@ -299,15 +304,15 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         val mailgunMocker = MailgunMocker()
         val incident = it.manager.incidents.listThermalMonitorIncidents().first()
         val expectedContent = "HÄLYTYKSEN TIEDOT\n\n"
-            .plus("KOHDE:\n")
+            .plus("KOHDE: terminaali Test site\n")
             .plus("VAHTI: ${monitor.name}\n")
-            .plus("ANTURI: ${incident.thermometerId}\n")
+            .plus("ANTURI: target thermometer\n")
             .plus("SYY: Lämpötila on 60.0 °C, joka on korkeampi kuin asetettu yläraja: 50.0 °C\n")
             .plus("AIKA: ${incident.timestamp}")
         val emailParameters = mailgunMocker.createParameterList(
             fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
             to = "test@example.com",
-            subject = "LÄMPÖTILAHÄLYTYS",
+            subject = "LÄMPÖTILAHÄLYTYS terminaalissa Test site",
             content = expectedContent
         )
 
@@ -316,7 +321,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
     @Test
     fun testSendThresholdLowIncidentEmail() = createTestBuilder().use {
-        val thermometerId = UUID.randomUUID()
+        val thermometerId = TestData.truckAndTowableThermometers[0].id!!
 
         val monitor = it.manager.thermalMonitors.create(
             ThermalMonitor(
@@ -365,15 +370,15 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         val mailgunMocker = MailgunMocker()
         val incident = it.manager.incidents.listThermalMonitorIncidents().first()
         val expectedContent = "HÄLYTYKSEN TIEDOT\n\n"
-            .plus("KOHDE:\n")
+            .plus("KOHDE: ajoneuvo Roadkiller\n")
             .plus("VAHTI: ${monitor.name}\n")
-            .plus("ANTURI: ${incident.thermometerId}\n")
+            .plus("ANTURI: Truck thermometer 1\n")
             .plus("SYY: Lämpötila on -100.0 °C, joka on alhaisempi kuin asetettu alaraja: -50.0 °C\n")
             .plus("AIKA: ${incident.timestamp}")
         val emailParameters = mailgunMocker.createParameterList(
             fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
             to = "testi@testi.fi",
-            subject = "LÄMPÖTILAHÄLYTYS",
+            subject = "LÄMPÖTILAHÄLYTYS ajoneuvossa Roadkiller",
             content = expectedContent
         )
 
@@ -382,7 +387,7 @@ class EscalationTestsIT: AbstractFunctionalTest() {
 
     @Test
     fun testSendSensorLostIncidentEmail() = createTestBuilder().use {
-        val thermometerId = UUID.randomUUID()
+        val thermometerId = TestData.truckAndTowableThermometers[1].id!!
 
         val monitor = it.manager.thermalMonitors.create(
             ThermalMonitor(
@@ -434,15 +439,15 @@ class EscalationTestsIT: AbstractFunctionalTest() {
         val incident = it.manager.incidents.listThermalMonitorIncidents().first()
 
         val expectedContent = "HÄLYTYKSEN TIEDOT\n\n"
-            .plus("KOHDE:\n")
+            .plus("KOHDE: perävaunu Raahattava\n")
             .plus("VAHTI: ${monitor.name}\n")
-            .plus("ANTURI: ${incident.thermometerId}\n")
+            .plus("ANTURI: Raahattava lämpömittari\n")
             .plus("SYY: Lämpötila ei päivittynyt määräajassa. Järjestelmässä asetettu raja on 5 minuuttia.\n")
             .plus("AIKA: ${incident.timestamp}")
         val emailParameters = mailgunMocker.createParameterList(
             fromEmail = ApiTestSettings.MAILGUN_SENDER_EMAIL,
             to = "testi@testi.fi",
-            subject = "LÄMPÖTILAHÄLYTYS",
+            subject = "LÄMPÖTILAHÄLYTYS perävaunussa Raahattava",
             content = expectedContent
         )
 

@@ -1,16 +1,28 @@
 package fi.metatavu.vp.monitoring.policies
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.vp.api.model.PagingPolicyType
+import fi.metatavu.vp.deliveryinfo.model.Site
+import fi.metatavu.vp.deliveryinfo.model.TerminalThermometer
+import fi.metatavu.vp.deliveryinfo.spec.SitesApi
 import fi.metatavu.vp.monitoring.email.EmailController
 import fi.metatavu.vp.monitoring.incidents.ThermalMonitorIncidentEntity
 import fi.metatavu.vp.monitoring.incidents.pagedpolicies.PagedPolicyRepository
 import fi.metatavu.vp.monitoring.monitors.ThermalMonitorEntity
 import fi.metatavu.vp.monitoring.policies.contacts.PagingPolicyContactEntity
+import fi.metatavu.vp.vehiclemanagement.model.Towable
+import fi.metatavu.vp.vehiclemanagement.model.Truck
+import fi.metatavu.vp.vehiclemanagement.model.TruckOrTowableThermometer
+import fi.metatavu.vp.vehiclemanagement.spec.TowablesApi
+import fi.metatavu.vp.vehiclemanagement.spec.TrucksApi
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import org.eclipse.microprofile.config.inject.ConfigProperty
+import org.eclipse.microprofile.rest.client.inject.RestClient
 import java.time.OffsetDateTime
 import java.util.*
+
 
 @ApplicationScoped
 class PagingPolicyController {
@@ -26,6 +38,21 @@ class PagingPolicyController {
 
     @ConfigProperty(name = "vp.monitoring.incidents.sensorlost.delayminutes")
     lateinit var sensorLostDelayMinutes: String
+
+    @RestClient
+    lateinit var trucksApi: TrucksApi
+
+    @RestClient
+    lateinit var towablesApi: TowablesApi
+
+    @RestClient
+    lateinit var sitesApi: SitesApi
+
+    @RestClient
+    lateinit var terminalThermometersApi: fi.metatavu.vp.deliveryinfo.spec.ThermometersApi
+
+    @RestClient
+    lateinit var vehicleThermometersApi: fi.metatavu.vp.vehiclemanagement.spec.ThermometersApi
 
     /**
      * Save a thermal monitor paging policy to the database
@@ -160,16 +187,13 @@ class PagingPolicyController {
             when (PagingPolicyType.valueOf(nextPolicy.pagingPolicyContact.contactType)) {
                 PagingPolicyType.EMAIL -> {
                     val receiverEmail = nextPolicy.pagingPolicyContact.contact
-                    if (receiverEmail != null) {
-                        val subject = "LÄMPÖTILAHÄLYTYS"
-                        val content = constructMessage(incident)
 
-                        emailController.sendEmail(
-                            to = receiverEmail,
-                            subject = subject,
-                            content = content
-                        )
-                    }
+                    val (subject, content) = constructSubjectAndMessage(incident)
+                    emailController.sendEmail(
+                        to = receiverEmail,
+                        subject = subject,
+                        content = content
+                    )
 
                 }
             }
@@ -178,14 +202,15 @@ class PagingPolicyController {
     }
 
     /**
-     * Construct a message based on the type of the incident
+     * Construct a subject and a message based on the type of the incident
      * This message will be sent to a policy contact
+     *
+     * @param incident
      */
-    fun constructMessage(incident: ThermalMonitorIncidentEntity): String {
+    suspend fun constructSubjectAndMessage(incident: ThermalMonitorIncidentEntity): Pair<String, String> {
         val temperature = incident.temperature
         val thresholdLow = incident.thresholdLow
         val thresholdHigh = incident.thresholdHigh
-
 
         val reason = if (temperature == null) {
             "Lämpötila ei päivittynyt määräajassa. Järjestelmässä asetettu raja on $sensorLostDelayMinutes minuuttia."
@@ -197,13 +222,122 @@ class PagingPolicyController {
             ""
         }
 
+        val incidentTarget = fetchThermometerExternalInformation(incident.monitorThermometer.thermometerId)
+
+        val incidentTargetName = incidentTarget?.name ?: "[VIRHETILANNE: HÄLYTYKSEN KOHDETTA EI LÖYTYNYT]"
+        val incidentThermometerName = incidentTarget?.thermometerName ?: "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]"
+
+        val subject = when (incidentTarget?.type) {
+            IncidentTargetType.SITE -> "LÄMPÖTILAHÄLYTYS terminaalissa $incidentTargetName"
+            IncidentTargetType.TRUCK -> "LÄMPÖTILAHÄLYTYS ajoneuvossa $incidentTargetName"
+            IncidentTargetType.TOWABLE -> "LÄMPÖTILAHÄLYTYS perävaunussa $incidentTargetName"
+            null -> "LÄMPÖTILAHÄLYTYS: [VIRHETILANNE: HÄLYTYKSEN KOHDETTA EI LÖYTYNYT]"
+        }
+
+        val targetTypeText = when (incidentTarget?.type) {
+            IncidentTargetType.SITE -> "terminaali"
+            IncidentTargetType.TRUCK -> "ajoneuvo"
+            IncidentTargetType.TOWABLE -> "perävaunu"
+            null -> ""
+        }
+
         val message = "HÄLYTYKSEN TIEDOT\n\n"
-            .plus("KOHDE:\n")
+            .plus("KOHDE: $targetTypeText $incidentTargetName\n")
             .plus("VAHTI: ${incident.thermalMonitor.name}\n")
-            .plus("ANTURI: ${incident.monitorThermometer.thermometerId}\n")
+            .plus("ANTURI: $incidentThermometerName\n")
             .plus("SYY: $reason\n")
             .plus("AIKA: ${incident.triggeredAt}")
 
-        return message
+
+        return Pair(subject, message)
+    }
+
+    enum class IncidentTargetType {
+        SITE,
+        TRUCK,
+        TOWABLE
+    }
+
+    data class IncidentTarget(
+        val type: IncidentTargetType,
+        val name: String,
+        val thermometerName: String
+    )
+
+    /**
+     * Fetches the name of the incident target and the name of the incident thermometer.
+     * Target can be a site, truck or towable.
+     *
+     * @param thermometerId
+     */
+    private suspend fun fetchThermometerExternalInformation(thermometerId: UUID): IncidentTarget? {
+        val sitesResponse = sitesApi
+            .listSites(thermometerId = thermometerId, first = null, max = null, archived = null)
+            .awaitSuspending()
+        val sitesString = sitesResponse.readEntity(String::class.java)
+        val sitesList = jacksonObjectMapper().readValue(sitesString, Array<Site>::class.java)
+
+        if (sitesList.isNotEmpty()) {
+            println("e")
+            val site = sitesList.first()
+
+            val thermometerResponse = terminalThermometersApi
+                .findTerminalThermometer(thermometerId = thermometerId)
+                .awaitSuspending()
+
+            if (thermometerResponse.status == 404) {
+                return IncidentTarget(IncidentTargetType.SITE, site.name, "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
+            }
+
+            val thermometer = thermometerResponse.readEntity(TerminalThermometer::class.java)
+            return IncidentTarget(IncidentTargetType.SITE, site.name, thermometer.name ?: thermometer.hardwareSensorId)
+        }
+
+        val trucksResponse = trucksApi
+            .listTrucks(thermometerId = thermometerId, first = null, max = null, archived = null, plateNumber = null, sortBy = null, sortDirection = null)
+            .awaitSuspending().readEntity(String::class.java)
+
+        val trucksList = jacksonObjectMapper().readValue(trucksResponse, Array<Truck>::class.java)
+
+        if (trucksList.isNotEmpty()) {
+
+            val truck = trucksList.first()
+            val thermometerResponse = vehicleThermometersApi
+                .findTruckOrTowableThermometer(thermometerId = thermometerId)
+                .awaitSuspending()
+
+
+            if (thermometerResponse.status == 404) {
+                return IncidentTarget(IncidentTargetType.TRUCK, truck.name ?: truck.vin, "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
+            }
+
+            val thermometer = thermometerResponse.readEntity(TruckOrTowableThermometer::class.java)
+
+            return IncidentTarget(IncidentTargetType.TRUCK, truck.name ?: truck.vin, thermometer.name ?: thermometer.macAddress)
+        }
+
+        val towablesResponse = towablesApi
+            .listTowables(thermometerId = thermometerId, first = null, max = null, archived = null, plateNumber = null)
+            .awaitSuspending()
+            .readEntity(String::class.java)
+
+        val towablesList = jacksonObjectMapper().readValue(towablesResponse, Array<Towable>::class.java).toList()
+
+        if (towablesList.isNotEmpty()) {
+            val towable = towablesList.first()
+            val thermometerResponse = vehicleThermometersApi
+                .findTruckOrTowableThermometer(thermometerId = thermometerId)
+                .awaitSuspending()
+
+
+            if (thermometerResponse.status == 404) {
+                return IncidentTarget(IncidentTargetType.TOWABLE,towable.name ?: towable.vin, "[VIRHETILANNE: HÄLYTYKSEEN LIITETTYÄ ANTURIA EI LÖYTYNYT]")
+            }
+
+            val thermometer = thermometerResponse.readEntity(TruckOrTowableThermometer::class.java)
+            return IncidentTarget(IncidentTargetType.TOWABLE,towable.name ?: towable.vin, thermometer.name ?: thermometer.macAddress)
+        }
+
+        return null
     }
 }

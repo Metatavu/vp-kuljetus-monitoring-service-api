@@ -71,6 +71,8 @@ java {
 sourceSets["main"].java {
     srcDir("build/generated/api-spec/src/main/kotlin")
     srcDir("build/generated/user-management-api-spec/src/main/kotlin")
+    srcDir("build/generated/delivery-info-api-spec/src/main/kotlin")
+    srcDir("build/generated/vehicle-management-api-spec/src/main/kotlin")
     srcDir("vp-kuljetus-messaging-service/src/main/kotlin")
 }
 sourceSets["test"].java {
@@ -141,6 +143,46 @@ val generateUserManagementApiSpec = tasks.register("generateUserManagementApiSpe
     this.configOptions.put("additionalModelTypeAnnotations", "@io.quarkus.runtime.annotations.RegisterForReflection")
 }
 
+val generateDeliveryInfoApiSpec = tasks.register("generateDeliveryInfoApiSpec",GenerateTask::class){
+    setProperty("generatorName", "kotlin-server")
+    setProperty("inputSpec",  "$rootDir/vp-kuljetus-transport-management-specs/services/delivery-info-services.yaml")
+    setProperty("outputDir", "$buildDir/generated/delivery-info-api-spec")
+    setProperty("apiPackage", "${project.group}.deliveryinfo.spec")
+    setProperty("invokerPackage", "${project.group}.deliveryinfp.invoker")
+    setProperty("modelPackage", "${project.group}.deliveryinfo.model")
+    setProperty("templateDir", "$rootDir/openapi/rest-client")
+    setProperty("validateSpec", false)
+
+    this.configOptions.put("library", "jaxrs-spec")
+    this.configOptions.put("dateLibrary", "java8")
+    this.configOptions.put("enumPropertyNaming", "UPPERCASE")
+    this.configOptions.put("interfaceOnly", "true")
+    this.configOptions.put("useMutiny", "true")
+    this.configOptions.put("returnResponse", "true")
+    this.configOptions.put("useSwaggerAnnotations", "false")
+    this.configOptions.put("additionalModelTypeAnnotations", "@io.quarkus.runtime.annotations.RegisterForReflection")
+}
+
+val generateVehicleManagementApiSpec = tasks.register("generateVehicleManagementApiSpec",GenerateTask::class){
+    setProperty("generatorName", "kotlin-server")
+    setProperty("inputSpec",  "$rootDir/vp-kuljetus-transport-management-specs/services/vehicle-management-services.yaml")
+    setProperty("outputDir", "$buildDir/generated/vehicle-management-api-spec")
+    setProperty("apiPackage", "${project.group}.vehiclemanagement.spec")
+    setProperty("invokerPackage", "${project.group}.vehiclemanagement.invoker")
+    setProperty("modelPackage", "${project.group}.vehiclemanagement.model")
+    setProperty("templateDir", "$rootDir/openapi/rest-client")
+    setProperty("validateSpec", false)
+
+    this.configOptions.put("library", "jaxrs-spec")
+    this.configOptions.put("dateLibrary", "java8")
+    this.configOptions.put("enumPropertyNaming", "UPPERCASE")
+    this.configOptions.put("interfaceOnly", "true")
+    this.configOptions.put("useMutiny", "true")
+    this.configOptions.put("returnResponse", "true")
+    this.configOptions.put("useSwaggerAnnotations", "false")
+    this.configOptions.put("additionalModelTypeAnnotations", "@io.quarkus.runtime.annotations.RegisterForReflection")
+}
+
 val generateApiClient = tasks.register("generateApiClient",GenerateTask::class){
     setProperty("generatorName", "kotlin")
     setProperty("library", "jvm-okhttp3")
@@ -158,6 +200,8 @@ val generateApiClient = tasks.register("generateApiClient",GenerateTask::class){
 tasks.named("compileKotlin") {
     dependsOn(generateApiSpec)
     dependsOn(generateUserManagementApiSpec)
+    dependsOn(generateDeliveryInfoApiSpec)
+    dependsOn(generateVehicleManagementApiSpec)
 }
 
 tasks.named("compileTestKotlin") {

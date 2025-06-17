@@ -52,8 +52,8 @@ class TemperatureGlobalEventConsumer: WithCoroutineScope() {
         activeMonitorThermometers.forEach {
             val updated = monitorThermometerController.updateThermometerLastMeasuredAt(it, temperatureEvent.timestamp)
 
-            val triggeredIncident = incidentController.list(monitorThermometer = updated, incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED).firstOrNull()
-            val acknowledgedIncident = incidentController.list(monitorThermometer = updated, incidentStatus = ThermalMonitorIncidentStatus.ACKNOWLEDGED).firstOrNull()
+            val triggeredIncident = incidentController.list(monitorThermometer = updated, incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED).first.firstOrNull()
+            val acknowledgedIncident = incidentController.list(monitorThermometer = updated, incidentStatus = ThermalMonitorIncidentStatus.ACKNOWLEDGED).first.firstOrNull()
             if (triggeredIncident == null && acknowledgedIncident == null) {
                 handleThresholds(temperatureEvent.temperature, updated)
             }

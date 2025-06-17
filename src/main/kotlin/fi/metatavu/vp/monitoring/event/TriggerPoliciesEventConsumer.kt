@@ -25,7 +25,7 @@ class TriggerPoliciesEventConsumer: WithCoroutineScope() {
     fun onEvent(triggerPoliciesEvent: TriggerPoliciesEvent) = withCoroutineScope(60_000) {
         val triggeredIncidents = incidentController.list(
             incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED
-        )
+        ).first
 
         triggeredIncidents.forEach { pagingPolicyController.triggerNextPolicy(it) }
 

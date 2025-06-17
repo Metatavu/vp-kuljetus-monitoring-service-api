@@ -64,7 +64,7 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
 
         val monitor = monitorId?.let { thermalMonitorController.find(monitorId) }
 
-        createOk(incidentController.list(
+        val (incidents, count) = incidentController.list(
             thermalMonitor = monitor,
             thermometerId = thermometerId,
             incidentStatus = incidentStatus,
@@ -72,7 +72,9 @@ class ThermalMonitorIncidentsApiImpl: ThermalMonitorIncidentsApi, AbstractApi() 
             triggeredBefore = before,
             first = first,
             max = max
-        ).map { thermalMonitorIncidentTranslator.translate(it) })
+        )
+
+        createOk(incidents.map { thermalMonitorIncidentTranslator.translate(it) }, count)
     }
 
     @RolesAllowed(MANAGER_ROLE)

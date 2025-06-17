@@ -59,7 +59,7 @@ class MonitorThermometerController {
      * @param monitorThermometerEntity
      */
     suspend fun delete(monitorThermometerEntity: MonitorThermometerEntity) {
-        incidentController.list(monitorThermometer = monitorThermometerEntity).forEach {
+        incidentController.list(monitorThermometer = monitorThermometerEntity).first.forEach {
 
             incidentController.delete(it)
         }

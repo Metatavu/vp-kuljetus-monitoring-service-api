@@ -141,7 +141,7 @@ class IncidentController {
         triggeredBefore: OffsetDateTime? = null,
         first: Int? = null,
         max: Int? = null
-    ): List<ThermalMonitorIncidentEntity> {
+    ): Pair<List<ThermalMonitorIncidentEntity>, Long> {
         return incidentRepository.list(
             thermalMonitor = thermalMonitor,
             monitorThermometer = monitorThermometer,
@@ -151,7 +151,7 @@ class IncidentController {
             triggeredBefore = triggeredBefore,
             first = first,
             max = max
-        ).first
+        )
     }
 
     /**
@@ -165,8 +165,8 @@ class IncidentController {
         )
 
         lostThermometers.forEach {
-            val triggeredIncident = list(monitorThermometer = it, incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED).firstOrNull()
-            val acknowledgedIncident = list(monitorThermometer = it, incidentStatus = ThermalMonitorIncidentStatus.ACKNOWLEDGED).firstOrNull()
+            val triggeredIncident = list(monitorThermometer = it, incidentStatus = ThermalMonitorIncidentStatus.TRIGGERED).first.firstOrNull()
+            val acknowledgedIncident = list(monitorThermometer = it, incidentStatus = ThermalMonitorIncidentStatus.ACKNOWLEDGED).first.firstOrNull()
             if (triggeredIncident == null && acknowledgedIncident == null) {
                 create(
                     monitorThermometer = it,
